@@ -1,0 +1,8 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>icons/ic_pause_black_48dp.png</file>
+    <file>icons/ic_skip_next_black_48dp.png</file>
+    <file>icons/ic_skip_previous_black_48dp.png</file>
+    <file>icons/ic_play_arrow_black_48dp.png</file>
+  </qresource>
+</RCC>

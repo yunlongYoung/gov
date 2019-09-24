@@ -1,1 +1,1 @@
-from .query_model import queryModel
+from .Model_query import queryModel

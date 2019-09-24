@@ -12,7 +12,10 @@ class Main(QWidget):
         self.setup.ui.pushButtonQuery.clicked.connect(self.openQuery)
 
     def openQuery(self):
+        self.query.ui.timer.start(1000)
+        self.query.ui.elapsed_time.start()
         self.query.ui.show()
+        print(f'open query:{self.query.ui.getDateTime()}')
         self.setup.close()
 
 

@@ -23,6 +23,8 @@ class Query(QMainWindow):
             self.previousQuestion)
         self.ui.question.ui.pushButtonNext.clicked.connect(
             self.nextQuestion)
+        self.ui.question.ui.pushButtonCommit.clicked.connect(
+            self.commitQuery)
 
     def setQuery(self):
         bg, q, model, has_image = self.query_model.data(
@@ -37,6 +39,7 @@ class Query(QMainWindow):
             self.index.column = self.query_model.maxnum-1
         self.setQuery()
         # print(self.elapsed_time.elapsed())
+        print(f'previous question:{self.ui.getDateTime()}')
 
     def nextQuestion(self):
         self.index.column += 1
@@ -44,6 +47,10 @@ class Query(QMainWindow):
             self.index.column = 0
         self.setQuery()
         # print(self.elapsed_time.elapsed())
+        print(f'next question:{self.ui.getDateTime()}')
+
+    def commitQuery(self):
+        print(f'commit query:{self.ui.getDateTime()}')
 
     def saveData(self):
         print('saveData')

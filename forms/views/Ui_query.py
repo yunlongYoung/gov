@@ -1,6 +1,6 @@
 import sys
 from PySide2.QtWidgets import QMainWindow, QApplication, QSplitter, QTextEdit, QGraphicsView, QWidget, QTextBrowser, QGridLayout, QListView
-from PySide2.QtCore import Qt, QStringListModel, QSize, Signal, QElapsedTimer, QTimer
+from PySide2.QtCore import Qt, QStringListModel, QSize, Signal, QElapsedTimer, QTimer, QDateTime
 from PySide2.QtGui import QTextDocumentFragment, QStandardItem, QIcon, QStandardItemModel, QPixmap
 from . import Ui_Question
 
@@ -35,12 +35,14 @@ class Ui_Query(QMainWindow):
         self.question.ui.pushButtonPause.clicked.connect(
             self.toggle_play_and_pause)
         self.timer = QTimer()
-        self.timer.start(1000)
         self.elapsed_time = QElapsedTimer()
-        self.elapsed_time.start()
         self.total_time = 0
         self.paused = False
+        self.setTime()
         self.timer.timeout.connect(self.setTime)
+
+    def getDateTime(self):
+        return QDateTime.currentDateTime().toTime_t()
 
     def setTime(self):
         time = (self.elapsed_time.elapsed() + self.total_time)//1000
@@ -60,6 +62,7 @@ class Ui_Query(QMainWindow):
             self.timer.start(1000)
             self.elapsed_time.restart()
             self.paused = False
+            print(f'continue query:{self.getDateTime()}')
         else:
             # pause the time
             icon_play = QIcon()
@@ -69,6 +72,7 @@ class Ui_Query(QMainWindow):
             self.total_time += self.elapsed_time.elapsed()
             self.timer.stop()
             self.paused = True
+            print(f'pause query:{self.getDateTime()}')
 
     def setBackgroud(self, background):
         self.question.ui.textEditBackground.setHtml(background)
@@ -90,7 +94,8 @@ class Ui_Query(QMainWindow):
     def closeEvent(self, event):
         if self.total_time is 0:
             self.total_time = self.elapsed_time.elapsed()
-        print(self.total_time)
+        # print(self.total_time)
+        print(f'quit query:{self.getDateTime()}')
         self.about_close.emit()
 
 

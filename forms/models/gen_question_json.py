@@ -200,7 +200,7 @@ def find_question():
         # print(file)
         # 在与txt同目录的json目录中生成同名的json文件
         dirname = os.path.dirname(file)
-        jsondir = os.path.join(os.path.dirname(dirname), 'json', 'paper')
+        jsondir = os.path.join(os.path.dirname(dirname), 'json')
         filename = os.path.basename(file).split('.')[0]
         new_json = os.path.join(jsondir, filename+'.json')
         current_num = 0  # 当前题号

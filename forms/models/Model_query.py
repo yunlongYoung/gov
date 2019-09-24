@@ -4,16 +4,15 @@ from PySide2.QtGui import QStandardItemModel, QIcon, QStandardItem, QPixmap
 
 
 class queryModel(QAbstractTableModel):
-    def __init__(self):
+    def __init__(self, paper):
         super().__init__()
-        data = 'D:/Desktop/gov/data/行测/国家/json/paper/2007.json'
-        with open(data, encoding='utf-8') as f:
+        with open(paper, encoding='utf-8') as f:
             self.dic = json.load(f)
         # 储存当前试卷
-        self.current_test = data
+        self.current_test = paper
         # 储存当前题目
         self.current_num = 1
-        self.maxnum = max(int(i) for i in self.dic.keys())
+        self.max_index = max(int(i) for i in self.dic.keys())
 
     def rowCount(self, index):
         return 6

@@ -62,7 +62,6 @@ class Ui_Query(QMainWindow):
             self.timer.start(1000)
             self.elapsed_time.restart()
             self.paused = False
-            print(f'continue query:{self.getDateTime()}')
         else:
             # pause the time
             icon_play = QIcon()
@@ -72,7 +71,6 @@ class Ui_Query(QMainWindow):
             self.total_time += self.elapsed_time.elapsed()
             self.timer.stop()
             self.paused = True
-            print(f'pause query:{self.getDateTime()}')
 
     def setBackgroud(self, background):
         self.question.ui.textEditBackground.setHtml(background)
@@ -95,7 +93,7 @@ class Ui_Query(QMainWindow):
         if self.total_time is 0:
             self.total_time = self.elapsed_time.elapsed()
         # print(self.total_time)
-        print(f'quit query:{self.getDateTime()}')
+        # print(f'quit query:{self.getDateTime()}')
         self.about_close.emit()
 
 

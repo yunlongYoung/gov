@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'd:\Desktop\gov\view\UI\question.ui',
-# licensing of 'd:\Desktop\gov\view\UI\question.ui' applies.
+# Form implementation generated from reading ui file 'd:\Desktop\gov\forms\views\question.ui',
+# licensing of 'd:\Desktop\gov\forms\views\question.ui' applies.
 #
-# Created: Sun Sep 22 23:06:03 2019
+# Created: Wed Sep 25 11:41:51 2019
 #      by: pyside2-uic  running on PySide2 5.13.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -102,29 +102,30 @@ class Ui_Question(object):
         self.pushButtonNext.setObjectName("pushButtonNext")
         self.horizontalLayout.addWidget(self.pushButtonNext)
         self.verticalLayout.addLayout(self.horizontalLayout)
-        self.listViewAnswers = QtWidgets.QListView(Question)
+        self.listViewOptions = QtWidgets.QListView(Question)
         sizePolicy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
-            self.listViewAnswers.sizePolicy().hasHeightForWidth())
-        self.listViewAnswers.setSizePolicy(sizePolicy)
-        self.listViewAnswers.setMinimumSize(QtCore.QSize(0, 0))
+            self.listViewOptions.sizePolicy().hasHeightForWidth())
+        self.listViewOptions.setSizePolicy(sizePolicy)
+        self.listViewOptions.setMinimumSize(QtCore.QSize(0, 0))
         font = QtGui.QFont()
         font.setFamily("宋体")
         font.setPointSize(11)
-        self.listViewAnswers.setFont(font)
-        self.listViewAnswers.setEditTriggers(
+        self.listViewOptions.setFont(font)
+        self.listViewOptions.setEditTriggers(
             QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.listViewAnswers.setSelectionMode(
+        self.listViewOptions.setSelectionMode(
             QtWidgets.QAbstractItemView.SingleSelection)
-        self.listViewAnswers.setSelectionBehavior(
+        self.listViewOptions.setSelectionBehavior(
             QtWidgets.QAbstractItemView.SelectRows)
-        self.listViewAnswers.setTextElideMode(QtCore.Qt.ElideNone)
-        self.listViewAnswers.setGridSize(QtCore.QSize(0, 40))
-        self.listViewAnswers.setObjectName("listViewAnswers")
-        self.verticalLayout.addWidget(self.listViewAnswers)
+        self.listViewOptions.setTextElideMode(QtCore.Qt.ElideNone)
+        self.listViewOptions.setSpacing(20)
+        self.listViewOptions.setGridSize(QtCore.QSize(0, 30))
+        self.listViewOptions.setObjectName("listViewOptions")
+        self.verticalLayout.addWidget(self.listViewOptions)
         self.verticalLayout_2.addLayout(self.verticalLayout)
         self.verticalLayout_3.addLayout(self.verticalLayout_2)
 

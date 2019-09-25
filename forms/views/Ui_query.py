@@ -15,7 +15,7 @@ class Question(QWidget):
 class Ui_Query(QMainWindow):
     about_close = Signal()
 
-    def __init__(self):
+    def __init__(self, totaltime=0):
         super().__init__()
         lsplitter = QSplitter(Qt.Vertical)
         self.question = Question()
@@ -34,9 +34,9 @@ class Ui_Query(QMainWindow):
         self.setCentralWidget(mainSplitter)
         self.question.ui.pushButtonPause.clicked.connect(
             self.toggle_play_and_pause)
+        self.totaltime = totaltime
         self.timer = QTimer()
         self.elapsed_time = QElapsedTimer()
-        self.total_time = 0
         self.paused = False
         self.setTime()
         self.timer.timeout.connect(self.setTime)
@@ -45,7 +45,7 @@ class Ui_Query(QMainWindow):
         return QDateTime.currentDateTime().toTime_t()
 
     def setTime(self):
-        time = (self.elapsed_time.elapsed() + self.total_time)//1000
+        time = (self.elapsed_time.elapsed() + self.totaltime)//1000
         hours = time//3600
         minutes = time % 3600//60
         seconds = time % 3600 % 60
@@ -68,7 +68,7 @@ class Ui_Query(QMainWindow):
             icon_play.addPixmap(QPixmap(
                 ":/icons/icons/ic_play_arrow_black_48dp.png"), QIcon.Normal, QIcon.Off)
             self.question.ui.pushButtonPause.setIcon(icon_play)
-            self.total_time += self.elapsed_time.elapsed()
+            self.totaltime += self.elapsed_time.elapsed()
             self.timer.stop()
             self.paused = True
 
@@ -80,20 +80,19 @@ class Ui_Query(QMainWindow):
             self.question.ui.textEditQuestion.setMinimumHeight(200)
         self.question.ui.textEditQuestion.setHtml(question)
 
-    def setAnswers(self, model, has_image):
+    def setOptions(self, model, has_image):
         if has_image:
-            self.question.ui.listViewAnswers.setViewMode(QListView.IconMode)
-            self.question.ui.listViewAnswers.setIconSize(QSize(100, 100))
-            self.question.ui.listViewAnswers.setMovement(QListView.Static)
-            self.question.ui.listViewAnswers.setSpacing(12)
-            self.question.ui.listViewAnswers.setMinimumHeight(230)
-        self.question.ui.listViewAnswers.setModel(model)
+            self.question.ui.listViewOptions.setViewMode(QListView.IconMode)
+            self.question.ui.listViewOptions.setIconSize(QSize(100, 100))
+            self.question.ui.listViewOptions.setMovement(QListView.Static)
+            self.question.ui.listViewOptions.setSpacing(12)
+            self.question.ui.listViewOptions.setMinimumHeight(230)
+        self.question.ui.listViewOptions.setModel(model)
 
     def closeEvent(self, event):
-        if self.total_time is 0:
-            self.total_time = self.elapsed_time.elapsed()
         # print(self.total_time)
         # print(f'quit query:{self.getDateTime()}')
+        self.totaltime += self.elapsed_time.elapsed()
         self.about_close.emit()
 
 

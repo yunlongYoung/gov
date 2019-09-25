@@ -202,7 +202,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QListView" name="listViewAnswers">
+        <widget class="QListView" name="listViewOptions">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
@@ -233,10 +233,13 @@
          <property name="textElideMode">
           <enum>Qt::ElideNone</enum>
          </property>
+         <property name="spacing">
+          <number>20</number>
+         </property>
          <property name="gridSize">
           <size>
            <width>0</width>
-           <height>40</height>
+           <height>30</height>
           </size>
          </property>
         </widget>

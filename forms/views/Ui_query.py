@@ -1,5 +1,12 @@
 import sys
-from PySide2.QtWidgets import QMainWindow, QSplitter, QTextEdit, QGraphicsView, QWidget, QListView
+from PySide2.QtWidgets import (
+    QMainWindow,
+    QSplitter,
+    QTextEdit,
+    QGraphicsView,
+    QWidget,
+    QListView,
+)
 from PySide2.QtCore import Qt, Signal, QElapsedTimer, QTimer, QDateTime
 from PySide2.QtGui import QIcon, QPixmap
 from . import Ui_Question
@@ -33,8 +40,7 @@ class Ui_Query(QMainWindow):
         mainSplitter.addWidget(rsplitter)
         self.setCentralWidget(mainSplitter)
         # 点击暂停按钮切换图标和停继时间
-        self.question.ui.pushButtonPause.clicked.connect(
-            self.toggle_play_and_pause)
+        self.question.ui.pushButtonPause.clicked.connect(self.toggle_play_and_pause)
         self.totaltime = totaltime  # 当前试卷答题总时间
         self.elapsed_time = QElapsedTimer()  # 答题总时间的计时器
         self.paused = False  # 默认刚打开时，还未暂停时间
@@ -43,26 +49,31 @@ class Ui_Query(QMainWindow):
         self.timer.timeout.connect(self.setTime)  # 每秒更新时间显示的定时器
 
     def getDateTime(self):
-        '''获取当前日期及时间'''
+        """获取当前日期及时间"""
         return QDateTime.currentDateTime().toTime_t()
 
     def setTime(self):
-        '''更新时间显示'''
-        time = (self.elapsed_time.elapsed() +
-                self.totaltime)//1000  # totaltime还包括上次答题所用的时间
-        hours = time//3600
-        minutes = time % 3600//60
+        """更新时间显示"""
+        time = (
+            self.elapsed_time.elapsed() + self.totaltime
+        ) // 1000  # totaltime还包括上次答题所用的时间
+        hours = time // 3600
+        minutes = time % 3600 // 60
         seconds = time % 3600 % 60
         self.question.ui.labelTimeUsed.setText(
-            f'{hours}:{minutes:02}:{seconds:02}')  # :02表示补全数字到2位，填充0
+            f"{hours}:{minutes:02}:{seconds:02}"
+        )  # :02表示补全数字到2位，填充0
 
     def toggle_play_and_pause(self):
         if self.paused:
             # 继续计时
             # 把继续图标换回暂停图标
             icon_pause = QIcon()
-            icon_pause.addPixmap(QPixmap(
-                ":/icons/icons/ic_pause_black_48dp.png"), QIcon.Normal, QIcon.Off)
+            icon_pause.addPixmap(
+                QPixmap(":/icons/icons/ic_pause_black_48dp.png"),
+                QIcon.Normal,
+                QIcon.Off,
+            )
             self.question.ui.pushButtonPause.setIcon(icon_pause)
             # 重新开始计时，包括1秒定时器和总时间计时器
             self.timer.start(1000)
@@ -72,8 +83,11 @@ class Ui_Query(QMainWindow):
         else:
             # 暂停计时
             icon_play = QIcon()
-            icon_play.addPixmap(QPixmap(
-                ":/icons/icons/ic_play_arrow_black_48dp.png"), QIcon.Normal, QIcon.Off)
+            icon_play.addPixmap(
+                QPixmap(":/icons/icons/ic_play_arrow_black_48dp.png"),
+                QIcon.Normal,
+                QIcon.Off,
+            )
             self.question.ui.pushButtonPause.setIcon(icon_play)
             self.totaltime += self.elapsed_time.elapsed()
             self.timer.stop()

@@ -17,7 +17,7 @@ class Main(QWidget):
         self.query.ui.elapsed_time.start()
         self.query.ui.show()
         # 在操作表中增加打开试卷，并记录当前时间，题目为当前题目
-        self.query.add_operation_time('open query')
+        self.query.add_operation_time("open query")
         # 完全打开答题界面后，再关闭启动界面
         self.setup.close()
 

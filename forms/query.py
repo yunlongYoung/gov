@@ -4,7 +4,7 @@ from PySide2.QtWidgets import QMainWindow, QApplication, QDialog, QWidget
 from PySide2.QtCore import QCoreApplication, QStringListModel,  Qt, QModelIndex, QElapsedTimer, QTimer, QItemSelectionModel
 from PySide2.QtGui import QStandardItemModel, QIcon, QStandardItem, QPixmap
 from .views import Ui_Query
-from .models import queryModel
+from .models import optionModel
 
 
 class Query(QMainWindow):
@@ -12,7 +12,7 @@ class Query(QMainWindow):
         super().__init__()
         # TODO 增加其他试卷data
         self.paper = 'D:/Desktop/gov/data/行测/国家/json/2007.json'
-        self.query_model = queryModel(self.paper)
+        self.query_model = optionModel(self.paper)
         totaltime = self.getTotaltime()
         self.ui = Ui_Query(totaltime)
         self.index = QModelIndex()
@@ -74,15 +74,19 @@ class Query(QMainWindow):
             self.index.column = self.query_model.max_index-1
         self.add_operation_time('passive start')
         self.setQuery()
-        print(self.ui.question.ui.listViewOptions.currentIndex().row())
-        print(self.ui.question.ui.listViewOptions.currentIndex().column())
-        print('*'*30)
+        print('currentIndex.row',
+              self.ui.question.ui.listViewOptions.currentIndex().row())
+        print('currentIndex.col',
+              self.ui.question.ui.listViewOptions.currentIndex().column())
         if self.index.column+1 in self.options:
             row = self.options[self.index.column+1]
             self.ui.question.ui.listViewOptions.setCurrentIndex(
                 QModelIndex(row, self.index.column))
-            print(self.ui.question.ui.listViewOptions.currentIndex().row())
-            print(self.ui.question.ui.listViewOptions.currentIndex().column())
+            print('after...')
+            print('currentIndex.row',
+                  self.ui.question.ui.listViewOptions.currentIndex().row())
+            print('currentIndex.col',
+                  self.ui.question.ui.listViewOptions.currentIndex().column())
         # print(self.elapsed_time.elapsed())
 
     def togglePauseQuestion(self):
@@ -100,15 +104,19 @@ class Query(QMainWindow):
         self.add_operation_time('passive start')
         self.setQuery()
         # print(self.elapsed_time.elapsed())
-        print(self.ui.question.ui.listViewOptions.currentIndex().row())
-        print(self.ui.question.ui.listViewOptions.currentIndex().column())
-        print('*'*30)
+        print('currentIndex.row',
+              self.ui.question.ui.listViewOptions.currentIndex().row())
+        print('currentIndex.col',
+              self.ui.question.ui.listViewOptions.currentIndex().column())
         if self.index.column+1 in self.options:
             row = self.options[self.index.column+1]
             self.ui.question.ui.listViewOptions.setCurrentIndex(
                 QModelIndex(row, self.index.column))
-            print(self.ui.question.ui.listViewOptions.currentIndex().row())
-            print(self.ui.question.ui.listViewOptions.currentIndex().column())
+            print('after...')
+            print('currentIndex.row',
+                  self.ui.question.ui.listViewOptions.currentIndex().row())
+            print('currentIndex.col',
+                  self.ui.question.ui.listViewOptions.currentIndex().column())
 
     def chooseOption(self):
         # 0, 1, 2, 3代表 A, B, C, D
@@ -130,11 +138,13 @@ class Query(QMainWindow):
         operation_path = self.genPath('operation')
         datetime_path = self.genPath('datetime')
         totaltime_path = self.genPath('totaltime')
+        option_path = self.genPath('option')
         # TODO 根据试卷名，把总时间保存到user_data中的json中
-        with open(operation_path, 'w', encoding='utf-8') as f, open(datetime_path, 'w', encoding='utf-8') as g, open(totaltime_path, 'w', encoding='utf-8') as h:
-            json.dump(self.operation, f, ensure_ascii=False)
-            json.dump(self.datetime, g, ensure_ascii=False)
-            json.dump(self.ui.totaltime, h, ensure_ascii=False)
+        with open(operation_path, 'w', encoding='utf-8') as f1, open(datetime_path, 'w', encoding='utf-8') as f2, open(totaltime_path, 'w', encoding='utf-8') as f3, open(option_path, 'w', encoding='utf-8') as f4:
+            json.dump(self.operation, f1, ensure_ascii=False)
+            json.dump(self.datetime, f2, ensure_ascii=False)
+            json.dump(self.ui.totaltime, f3, ensure_ascii=False)
+            json.dump(self.options, f4, ensure_ascii=False)
 
 
 if __name__ == "__main__":

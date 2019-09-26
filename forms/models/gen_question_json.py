@@ -56,7 +56,7 @@ BASE = r'd:\Desktop\gov\data\行测'
 # 如果先找到了题号，则为普通题，继续寻找下一道题，并把这些缓存中的部分都设置为上题题干
 # 如果什么都没找到，则打印剩下的部分，并且把剩余的所有部分设置为上一个题号的题干
 # 还有可能是题目要求，如果已经找到了选项D，但是本题的题干还没有结束，可能是题目要求，可以放在下一道题的背景UI中，优先于背景资料
-# {1:'扽狂三疯狂单色房东反对三', 2:'另囧扽反对房东  房东 ', bg:{125:'赛蓝发动蓝发动蓝看发动机', 126:'塞拉芬KDJ森林东讲课'}}
+# {1:'扽狂三疯狂单色房东反对三', 2:'另囧扽反对房东  房东 ', backgroud:{125:'赛蓝发动蓝发动蓝看发动机', 126:'塞拉芬KDJ森林东讲课'}}
 
 # 从上个json中，或者字典中，再次分析选项
 # 如果以A.开头，则查找B，如果找到，把B前面的都归到A选项，以此类推
@@ -139,6 +139,7 @@ def find_question():
     _B = re.compile('\s*B[\.|．]')
     _C = re.compile('\s*C[\.|．]')
     _D = re.compile('\s*D[\.|．]')
+    # bg为背景材料，background的缩写
     _bg = re.compile('(\d+)[~|～](\d+)')
     bg_range = []
     dic = {}
@@ -161,40 +162,41 @@ def find_question():
         current_num = int(num.group(1))
         if current_num not in dic:
             dic[current_num] = {}
-        dic[current_num]['q'] = _num.split(line)[2]  # q is for question，题干
+        dic[current_num]['question'] = _num.split(
+            line)[2]  # q is for question，题干
         return current_num
 
     def abcd_in_4_lines(f, a, current_num):
         # 属于ABCD各一行的
-        dic[current_num]['ans'] = []
-        dic[current_num]['ans'].append('A. '+a)
+        dic[current_num]['options'] = []
+        dic[current_num]['options'].append('A. '+a)
         line = f.readline()
-        dic[current_num]['ans'].append('B. '+_B.split(line, 1)[1].strip())
+        dic[current_num]['options'].append('B. '+_B.split(line, 1)[1].strip())
         line = f.readline()
-        dic[current_num]['ans'].append('C. '+_C.split(line, 1)[1].strip())
+        dic[current_num]['options'].append('C. '+_C.split(line, 1)[1].strip())
         line = f.readline()
-        dic[current_num]['ans'].append('D. '+_D.split(line, 1)[1].strip())
+        dic[current_num]['options'].append('D. '+_D.split(line, 1)[1].strip())
 
     def abcd_in_2_lines(f, a, b, current_num):
         # 属于ABCD各一行的
-        dic[current_num]['ans'] = []
-        dic[current_num]['ans'].append('A. '+a)
-        dic[current_num]['ans'].append('B. '+b)
+        dic[current_num]['options'] = []
+        dic[current_num]['options'].append('A. '+a)
+        dic[current_num]['options'].append('B. '+b)
         line = f.readline()
         line = _C.split(line, 1)[1]
         c, d = _D.split(line, 1)
-        dic[current_num]['ans'].append('C. '+c)
-        dic[current_num]['ans'].append('D. '+d)
+        dic[current_num]['options'].append('C. '+c)
+        dic[current_num]['options'].append('D. '+d)
 
     def abcd_in_1_line(a, b, current_num):
         # ABCD在同一行的处理
         b, c = _C.split(b, 1)
         c, d = _D.split(c, 1)
-        dic[current_num]['ans'] = []
-        dic[current_num]['ans'].append('A. '+a)
-        dic[current_num]['ans'].append('B. '+b)
-        dic[current_num]['ans'].append('C. '+c)
-        dic[current_num]['ans'].append('D. '+d)
+        dic[current_num]['options'] = []
+        dic[current_num]['options'].append('A. '+a)
+        dic[current_num]['options'].append('B. '+b)
+        dic[current_num]['options'].append('C. '+c)
+        dic[current_num]['options'].append('D. '+d)
 
     for file in files:
         # print(file)
@@ -210,17 +212,17 @@ def find_question():
                 line = f.readline()
                 if pos is 0:  # 寻找题号，上题选项后、背景资料题号后
                     num = _num.match(line)
-                    bg = _bg.search(line)
+                    backgroud = _bg.search(line)
                     if num:
                         # print(file)
                         current_num = handle_num_line(line, num)
                         pos = 1
-                    elif bg:
-                        beg, end = bg.groups()
+                    elif backgroud:
+                        beg, end = backgroud.groups()
                         bg_range = [i for i in range(int(beg), int(end)+1)]
                         for i in bg_range:
                             dic[i] = {}
-                            dic[i]['bg'] = ''
+                            dic[i]['backgroud'] = ''
                         # print(bg_range)
                         pos = 2
                 elif pos is 1:  # 寻找选项，本题题号后，题干中
@@ -238,7 +240,7 @@ def find_question():
                         pos = 0
                     else:
                         # line属于题干
-                        dic[current_num]['q'] += '<br>' + line
+                        dic[current_num]['question'] += '<br>' + line
                 elif pos is 2:  # 寻找下题题号，背景资料中
                     num = _num.match(line)
                     if num:
@@ -247,7 +249,7 @@ def find_question():
                         pos = 1
                     else:  # 这些是背景或者题目要求
                         for i in bg_range:
-                            dic[i]['bg'] += '<br>' + line
+                            dic[i]['backgroud'] += '<br>' + line
                 if not line:
                     break
             json.dump(dic, g, ensure_ascii=False)

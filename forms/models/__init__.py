@@ -1,1 +1,1 @@
-from .Model_query import queryModel
+from .Model_query import optionModel

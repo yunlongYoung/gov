@@ -142,7 +142,8 @@ def find_question():
     # bg为背景材料，background的缩写
     _bg = re.compile('(\d+)[~|～](\d+)')
     bg_range = []
-    dic = {}
+    questions = {}
+    options = {}
 
     def get_files(base=BASE):
         files = []
@@ -160,43 +161,48 @@ def find_question():
 
     def handle_num_line(line, num):
         current_num = int(num.group(1))
-        if current_num not in dic:
-            dic[current_num] = {}
-        dic[current_num]['question'] = _num.split(
+        if current_num not in questions:
+            questions[current_num] = ''
+        else:
+            questions[current_num] += '<br><br><br>'
+        questions[current_num] += _num.split(
             line)[2]  # q is for question，题干
         return current_num
 
     def abcd_in_4_lines(f, a, current_num):
         # 属于ABCD各一行的
-        dic[current_num]['options'] = []
-        dic[current_num]['options'].append('A. '+a)
+        options[current_num] = []
+        options[current_num].append('A. '+a)
         line = f.readline()
-        dic[current_num]['options'].append('B. '+_B.split(line, 1)[1].strip())
+        options[current_num].append(
+            'B. '+_B.split(line, 1)[1].strip())
         line = f.readline()
-        dic[current_num]['options'].append('C. '+_C.split(line, 1)[1].strip())
+        options[current_num].append(
+            'C. '+_C.split(line, 1)[1].strip())
         line = f.readline()
-        dic[current_num]['options'].append('D. '+_D.split(line, 1)[1].strip())
+        options[current_num].append(
+            'D. '+_D.split(line, 1)[1].strip())
 
     def abcd_in_2_lines(f, a, b, current_num):
         # 属于ABCD各一行的
-        dic[current_num]['options'] = []
-        dic[current_num]['options'].append('A. '+a)
-        dic[current_num]['options'].append('B. '+b)
+        options[current_num] = []
+        options[current_num].append('A. '+a)
+        options[current_num].append('B. '+b)
         line = f.readline()
         line = _C.split(line, 1)[1]
         c, d = _D.split(line, 1)
-        dic[current_num]['options'].append('C. '+c)
-        dic[current_num]['options'].append('D. '+d)
+        options[current_num].append('C. '+c)
+        options[current_num].append('D. '+d)
 
     def abcd_in_1_line(a, b, current_num):
         # ABCD在同一行的处理
         b, c = _C.split(b, 1)
         c, d = _D.split(c, 1)
-        dic[current_num]['options'] = []
-        dic[current_num]['options'].append('A. '+a)
-        dic[current_num]['options'].append('B. '+b)
-        dic[current_num]['options'].append('C. '+c)
-        dic[current_num]['options'].append('D. '+d)
+        options[current_num] = []
+        options[current_num].append('A. '+a)
+        options[current_num].append('B. '+b)
+        options[current_num].append('C. '+c)
+        options[current_num].append('D. '+d)
 
     for file in files:
         # print(file)
@@ -204,10 +210,11 @@ def find_question():
         dirname = os.path.dirname(file)
         jsondir = os.path.join(os.path.dirname(dirname), 'json')
         filename = os.path.basename(file).split('.')[0]
-        new_json = os.path.join(jsondir, filename+'.json')
+        questions_json = os.path.join(jsondir, filename+'_questions.json')
+        options_json = os.path.join(jsondir, filename+'_options.json')
         current_num = 0  # 当前题号
         pos = 0
-        with open(file, encoding='utf-8') as f, open(new_json, 'w', encoding='utf-8') as g:
+        with open(file, encoding='utf-8') as f, open(questions_json, 'w', encoding='utf-8') as g, open(options_json, 'w', encoding='utf-8')as h:
             while 1:
                 line = f.readline()
                 if pos is 0:  # 寻找题号，上题选项后、背景资料题号后
@@ -221,8 +228,9 @@ def find_question():
                         beg, end = backgroud.groups()
                         bg_range = [i for i in range(int(beg), int(end)+1)]
                         for i in bg_range:
-                            dic[i] = {}
-                            dic[i]['backgroud'] = ''
+                            questions[i] = {}
+                            # 把background也合并到question里
+                            questions[i] = ''
                         # print(bg_range)
                         pos = 2
                 elif pos is 1:  # 寻找选项，本题题号后，题干中
@@ -240,7 +248,7 @@ def find_question():
                         pos = 0
                     else:
                         # line属于题干
-                        dic[current_num]['question'] += '<br>' + line
+                        questions[current_num] += '<br>' + line
                 elif pos is 2:  # 寻找下题题号，背景资料中
                     num = _num.match(line)
                     if num:
@@ -249,11 +257,12 @@ def find_question():
                         pos = 1
                     else:  # 这些是背景或者题目要求
                         for i in bg_range:
-                            dic[i]['backgroud'] += '<br>' + line
+                            # 把background也合并到question里
+                            questions[i] += '<br>' + line
                 if not line:
                     break
-            json.dump(dic, g, ensure_ascii=False)
-            # pprint(dic)
+            json.dump(questions, g, ensure_ascii=False)
+            json.dump(options, h, ensure_ascii=False)
 
 
 find_question()

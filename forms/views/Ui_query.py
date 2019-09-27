@@ -27,6 +27,7 @@ class Ui_Query(QMainWindow):
         # 在主窗口左侧添加题干和选项
         lsplitter = QSplitter(Qt.Vertical)
         self.question = Question()
+        print("in Ui_Query init", self.question.ui.listViewOptions.selectionMode())
         lsplitter.addWidget(self.question)
         # 在主窗口右侧添加绘图和文本编辑，并把比例设置为3比1
         rsplitter = QSplitter(Qt.Vertical)

@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from PySide2.QtCore import QStringListModel, Qt
+from PySide2.QtCore import QStringListModel, Qt, QModelIndex
 from PySide2.QtWidgets import QMainWindow, QAbstractItemView
 from .views import Ui_Query
 
@@ -21,6 +21,7 @@ class Query(QMainWindow):
         )
         # 使用答题已用时间初始化UI
         self.ui = Ui_Query(self.totaltime)
+        print("in Query init", self.ui.question.ui.listViewOptions.selectionMode())
         self.initSignals()
         # 更新插件内容
         self.ui.question.ui.listViewOptions.setModel(self.option_model)
@@ -46,6 +47,24 @@ class Query(QMainWindow):
             self._questions[str(self.current_num)]
         )
         self.option_model.setStringList(self._options[str(self.current_num)])
+        print("in updateQuestion", self.ui.question.ui.listViewOptions.selectionMode())
+        # 如果这道题已经被选过答案，则阴影突出答案
+        print(f"self.current_num = {self.current_num}")
+        print(f"self.chosen = {self.chosen}")
+        if str(self.current_num) in self.chosen:
+            row = self.chosen[str(self.current_num)]
+            print(f"row = {row}")
+            index = self.option_model.index(row, 0)
+            print(f"index = {index}")
+            print(
+                "in updateQuestion, before setting...",
+                self.ui.question.ui.listViewOptions.currentIndex(),
+            )
+            self.ui.question.ui.listViewOptions.setCurrentIndex(index)
+            print(
+                "in updateQuestion, after setting...",
+                self.ui.question.ui.listViewOptions.currentIndex(),
+            )
 
     def initSignals(self):
         self.ui.about_close.connect(self.quitAction)
@@ -94,37 +113,12 @@ class Query(QMainWindow):
 
     def previousQuestion(self):
         # 改变model，以改变view
-        # print(f"self.chosen = {self.chosen}")
-        if str(self.current_num) in self.chosen:
-            # self.ui.question.ui.listViewOptions.setSelectionMode(
-            #     QAbstractItemView.SingleSelection
-            # )
-            # self.ui.question.ui.listViewOptions.setSelectionBehavior(
-            #     QAbstractItemView.SelectRows
-            # )
-            # print(self.ui.question.ui.listViewOptions.SelectionMode())
-            # print(self.ui.question.ui.listViewOptions.SelectionBehavior())
-            self.ui.question.ui.listViewOptions.selectAll()
-            # row = self.chosen[str(self.current_num)]
-            # # selection_model = self.ui.question.ui.listViewOptions.selectionModel()
-            # parent = QModelIndex()
-            # top_left = self.option_model.index(row, 0, parent)
-            # rect = self.ui.question.ui.listViewOptions.rectForIndex(top_left)
-            # # bottom_right = self.option_model.index(row, 0, parent)
-            # # self.ui.question.ui.listViewOptions.setSelectionRectVisible(True)
-            # self.ui.question.ui.listViewOptions.setSelection(
-            #     rect, QItemSelectionModel.Select
-            # )
-            # print("rect", rect)
-        self.add_operation_time("previous question")
+        self.add_operation_time("next question")
         self.current_num -= 1
         if self.current_num is 0:
             self.current_num = self.max_num
         self.add_operation_time("passive start")
         self.updateQuestion()
-        # 如果这道题已经被选过答案，则阴影突出答案
-        if str(self.current_num) in self.chosen:
-            pass
 
     def togglePauseQuestion(self):
         if self.ui.paused:
@@ -141,17 +135,14 @@ class Query(QMainWindow):
             self.current_num = 1
         self.add_operation_time("passive start")
         self.updateQuestion()
-        # 如果这道题已经被选过答案，则阴影突出答案
 
     def chooseOption(self):
         # TODO 还有BUG，实际保留到了前一个问题名下
         # 0, 1, 2, 3代表 A, B, C, D
-        print(self.ui.question.ui.listViewOptions.SelectionMode())
-        print(self.ui.question.ui.listViewOptions.SelectionBehavior())
         choice = self.ui.question.ui.listViewOptions.currentIndex().row()
         self.chosen[str(self.current_num)] = choice
         print(choice)
-        # self.nextQuestion()
+        self.nextQuestion()
 
     def commitQuery(self):
         # TODO 这个提交需要终止答题

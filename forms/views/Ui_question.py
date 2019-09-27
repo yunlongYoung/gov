@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'd:\Desktop\gov\forms\views\question.ui',
 # licensing of 'd:\Desktop\gov\forms\views\question.ui' applies.
 #
-# Created: Fri Sep 27 10:36:12 2019
+# Created: Fri Sep 27 12:34:33 2019
 #      by: pyside2-uic  running on PySide2 5.13.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -123,7 +123,7 @@ class Ui_Question(object):
         self.listViewOptions.setTextElideMode(QtCore.Qt.ElideNone)
         self.listViewOptions.setSpacing(20)
         self.listViewOptions.setGridSize(QtCore.QSize(0, 30))
-        self.listViewOptions.setSelectionRectVisible(True)
+        self.listViewOptions.setSelectionRectVisible(False)
         self.listViewOptions.setObjectName("listViewOptions")
         self.verticalLayout.addWidget(self.listViewOptions)
         self.verticalLayout_2.addLayout(self.verticalLayout)

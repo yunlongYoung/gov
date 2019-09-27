@@ -4,6 +4,7 @@ import json
 from PySide2.QtCore import QStringListModel, Qt, QModelIndex
 from PySide2.QtWidgets import QMainWindow, QAbstractItemView
 from .views import Ui_Query
+from .models import dbSession, Record, Operation
 
 
 class Query(QMainWindow):
@@ -21,11 +22,14 @@ class Query(QMainWindow):
         )
         # 使用答题已用时间初始化UI
         self.ui = Ui_Query(self.totaltime)
-        print("in Query init", self.ui.question.ui.listViewOptions.selectionMode())
         self.initSignals()
         # 更新插件内容
         self.ui.question.ui.listViewOptions.setModel(self.option_model)
         self.updateQuestion()
+        # self.question_time = dict.fromkeys(range(1, self.max_num + 1), 0)
+        # print(f"self.question_time = {self.question_time}")
+        self.question_time = {}
+        self.session = dbSession()
 
     def loadQuestions(self):
         """把options.json读取到model中，题目为option_model的self.num"""
@@ -47,24 +51,11 @@ class Query(QMainWindow):
             self._questions[str(self.current_num)]
         )
         self.option_model.setStringList(self._options[str(self.current_num)])
-        print("in updateQuestion", self.ui.question.ui.listViewOptions.selectionMode())
         # 如果这道题已经被选过答案，则阴影突出答案
-        print(f"self.current_num = {self.current_num}")
-        print(f"self.chosen = {self.chosen}")
         if str(self.current_num) in self.chosen:
             row = self.chosen[str(self.current_num)]
-            print(f"row = {row}")
             index = self.option_model.index(row, 0)
-            print(f"index = {index}")
-            print(
-                "in updateQuestion, before setting...",
-                self.ui.question.ui.listViewOptions.currentIndex(),
-            )
             self.ui.question.ui.listViewOptions.setCurrentIndex(index)
-            print(
-                "in updateQuestion, after setting...",
-                self.ui.question.ui.listViewOptions.currentIndex(),
-            )
 
     def initSignals(self):
         self.ui.about_close.connect(self.quitAction)
@@ -141,34 +132,73 @@ class Query(QMainWindow):
         # 0, 1, 2, 3代表 A, B, C, D
         choice = self.ui.question.ui.listViewOptions.currentIndex().row()
         self.chosen[str(self.current_num)] = choice
-        print(choice)
+        # print(choice)
         self.nextQuestion()
 
     def commitQuery(self):
         # TODO 这个提交需要终止答题
         self.add_operation_time("commit query")
+        for i in self.datetime:
+            # 如果有做题时间，即做过这道题
+            datetime_list = self.datetime[i]
+            if datetime_list:
+                # 把datetime_list变成偶数长度
+                if len(datetime_list) % 2:
+                    datetime_list = datetime_list[:-1]
+                # 两两相减再加一起
+                total = 0
+                j = 0
+                while j < len(datetime_list):
+                    total += datetime_list[j + 1] - datetime_list[j]
+                    j += 2
+                self.question_time[i] = total
+        print(self.question_time)
+        print(sum(self.question_time.values()))
+        if self.ui.totaltime is 0:
+            self.totaltime = self.ui.elapsed_time.elapsed()
+        else:
+            self.totaltime += self.ui.elapsed_time.elapsed()
+        print(self.totaltime)
 
     def quitAction(self):
         self.add_operation_time("quit query")
-        print("saveing Data...")
+        print("saveing Data into DB...")
         # self.paper = 'D:/Desktop/gov/data/行测/国家/json/2007.json'
         if self.ui.totaltime is 0:
             self.ui.totaltime = self.ui.elapsed_time.elapsed()
-        operation_path = self.genPath("operation")
-        datetime_path = self.genPath("datetime")
-        totaltime_path = self.genPath("totaltime")
-        chosen_path = self.genPath("chosen")
-        current_num_path = self.genPath("current_num")
-        # TODO 根据试卷名，把总时间保存到user_data中的json中
-        with open(operation_path, "w", encoding="utf-8") as f1, open(
-            datetime_path, "w", encoding="utf-8"
-        ) as f2, open(totaltime_path, "w", encoding="utf-8") as f3, open(
-            chosen_path, "w", encoding="utf-8"
-        ) as f4, open(
-            current_num_path, "w", encoding="utf-8"
-        ) as f5:
-            json.dump(self.operation, f1, ensure_ascii=False)
-            json.dump(self.datetime, f2, ensure_ascii=False)
-            json.dump(self.ui.totaltime, f3, ensure_ascii=False)
-            json.dump(self.chosen, f4, ensure_ascii=False)
-            json.dump(self.current_num, f5, ensure_ascii=False)
+        # operation_path = self.genPath("operation")
+        # datetime_path = self.genPath("datetime")
+        # totaltime_path = self.genPath("totaltime")
+        # chosen_path = self.genPath("chosen")
+        # current_num_path = self.genPath("current_num")
+        # # TODO 根据试卷名，把总时间保存到user_data中的json中
+        # with open(operation_path, "w", encoding="utf-8") as f1, open(
+        #     datetime_path, "w", encoding="utf-8"
+        # ) as f2, open(totaltime_path, "w", encoding="utf-8") as f3, open(
+        #     chosen_path, "w", encoding="utf-8"
+        # ) as f4, open(
+        #     current_num_path, "w", encoding="utf-8"
+        # ) as f5:
+        #     json.dump(self.operation, f1, ensure_ascii=False)
+        #     json.dump(self.datetime, f2, ensure_ascii=False)
+        #     json.dump(self.ui.totaltime, f3, ensure_ascii=False)
+        #     json.dump(self.chosen, f4, ensure_ascii=False)
+        #     json.dump(self.current_num, f5, ensure_ascii=False)
+        record = Record(
+            test_kind="行测",
+            region="国家",
+            year=2007,
+            grade="",
+            chosen="1",
+            num=1,
+            question_time=123,
+        )
+
+        operation = [
+            Operation(operation="open query", datetime=13132132, record_id=record.id),
+            Operation(operation="quit query", datetime=13132135, record_id=record.id),
+        ]
+        self.session.add(record)
+        self.session.add_all(operation)
+        self.session.commit()
+        self.session.close()

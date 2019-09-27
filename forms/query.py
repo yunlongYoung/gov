@@ -1,8 +1,8 @@
 import os
 import sys
 import json
-from PySide2.QtCore import QStringListModel
-from PySide2.QtWidgets import QMainWindow
+from PySide2.QtCore import QStringListModel, Qt
+from PySide2.QtWidgets import QMainWindow, QAbstractItemView
 from .views import Ui_Query
 
 
@@ -51,9 +51,9 @@ class Query(QMainWindow):
         self.ui.about_close.connect(self.quitAction)
         self.ui.question.ui.pushButtonPrevious.clicked.connect(self.previousQuestion)
         self.ui.question.ui.pushButtonNext.clicked.connect(self.nextQuestion)
+        self.ui.question.ui.listViewOptions.clicked.connect(self.chooseOption)
         self.ui.question.ui.pushButtonPause.clicked.connect(self.togglePauseQuestion)
         self.ui.question.ui.pushButtonCommit.clicked.connect(self.commitQuery)
-        self.ui.question.ui.listViewOptions.clicked.connect(self.chooseOption)
 
     def loadData(self):
         """从文件中读取操作、日期时间、已用时间、已选答案"""
@@ -64,8 +64,8 @@ class Query(QMainWindow):
         current_num_path = self.genPath("current_num")
         if not os.path.exists(operation_path):
             # 生成所有题目的空列表
-            operation = {k: [] for k in range(1, self.max_num + 1)}
-            datetime = {k: [] for k in range(1, self.max_num + 1)}
+            operation = {str(k): [] for k in range(1, self.max_num + 1)}
+            datetime = {str(k): [] for k in range(1, self.max_num + 1)}
             # self.operation = dict.fromkeys(
             #     range(1, self.query_model.max_index+1), []) 这种方法有坑
             totaltime = 0
@@ -94,7 +94,28 @@ class Query(QMainWindow):
 
     def previousQuestion(self):
         # 改变model，以改变view
-        # print(f'self.chosen = {self.chosen}')
+        # print(f"self.chosen = {self.chosen}")
+        if str(self.current_num) in self.chosen:
+            # self.ui.question.ui.listViewOptions.setSelectionMode(
+            #     QAbstractItemView.SingleSelection
+            # )
+            # self.ui.question.ui.listViewOptions.setSelectionBehavior(
+            #     QAbstractItemView.SelectRows
+            # )
+            # print(self.ui.question.ui.listViewOptions.SelectionMode())
+            # print(self.ui.question.ui.listViewOptions.SelectionBehavior())
+            self.ui.question.ui.listViewOptions.selectAll()
+            # row = self.chosen[str(self.current_num)]
+            # # selection_model = self.ui.question.ui.listViewOptions.selectionModel()
+            # parent = QModelIndex()
+            # top_left = self.option_model.index(row, 0, parent)
+            # rect = self.ui.question.ui.listViewOptions.rectForIndex(top_left)
+            # # bottom_right = self.option_model.index(row, 0, parent)
+            # # self.ui.question.ui.listViewOptions.setSelectionRectVisible(True)
+            # self.ui.question.ui.listViewOptions.setSelection(
+            #     rect, QItemSelectionModel.Select
+            # )
+            # print("rect", rect)
         self.add_operation_time("previous question")
         self.current_num -= 1
         if self.current_num is 0:
@@ -102,6 +123,8 @@ class Query(QMainWindow):
         self.add_operation_time("passive start")
         self.updateQuestion()
         # 如果这道题已经被选过答案，则阴影突出答案
+        if str(self.current_num) in self.chosen:
+            pass
 
     def togglePauseQuestion(self):
         if self.ui.paused:
@@ -111,7 +134,7 @@ class Query(QMainWindow):
 
     def nextQuestion(self):
         # 改变model，以改变view
-        # print(f'self.chosen = {self.chosen}')
+        # print(f"self.chosen = {self.chosen}")
         self.add_operation_time("next question")
         self.current_num += 1
         if self.current_num > self.max_num:
@@ -121,11 +144,14 @@ class Query(QMainWindow):
         # 如果这道题已经被选过答案，则阴影突出答案
 
     def chooseOption(self):
+        # TODO 还有BUG，实际保留到了前一个问题名下
         # 0, 1, 2, 3代表 A, B, C, D
+        print(self.ui.question.ui.listViewOptions.SelectionMode())
+        print(self.ui.question.ui.listViewOptions.SelectionBehavior())
         choice = self.ui.question.ui.listViewOptions.currentIndex().row()
         self.chosen[str(self.current_num)] = choice
         print(choice)
-        self.nextQuestion()
+        # self.nextQuestion()
 
     def commitQuery(self):
         # TODO 这个提交需要终止答题

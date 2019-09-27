@@ -3,12 +3,11 @@
 # Form implementation generated from reading ui file 'd:\Desktop\gov\forms\views\question.ui',
 # licensing of 'd:\Desktop\gov\forms\views\question.ui' applies.
 #
-# Created: Thu Sep 26 20:12:56 2019
+# Created: Fri Sep 27 10:36:12 2019
 #      by: pyside2-uic  running on PySide2 5.13.1
 #
 # WARNING! All changes made in this file will be lost!
 
-from . import Icons_rc
 from PySide2 import QtCore, QtGui, QtWidgets
 
 
@@ -22,11 +21,13 @@ class Ui_Question(object):
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.textEditQuestion = QtWidgets.QTextEdit(Question)
         sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
-            self.textEditQuestion.sizePolicy().hasHeightForWidth())
+            self.textEditQuestion.sizePolicy().hasHeightForWidth()
+        )
         self.textEditQuestion.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
         font.setFamily("宋体")
@@ -45,7 +46,8 @@ class Ui_Question(object):
         self.pushButtonCommit.setObjectName("pushButtonCommit")
         self.horizontalLayout.addWidget(self.pushButtonCommit)
         spacerItem = QtWidgets.QSpacerItem(
-            78, 13, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+            78, 13, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        )
         self.horizontalLayout.addItem(spacerItem)
         self.labelTimeUsed = QtWidgets.QLabel(Question)
         self.labelTimeUsed.setMinimumSize(QtCore.QSize(90, 30))
@@ -57,8 +59,11 @@ class Ui_Question(object):
         self.pushButtonPrevious.setMaximumSize(QtCore.QSize(50, 30))
         self.pushButtonPrevious.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(
-            ":/icons/icons/ic_skip_previous_black_48dp.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(
+            QtGui.QPixmap(":/icons/icons/ic_skip_previous_black_48dp.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         self.pushButtonPrevious.setIcon(icon)
         self.pushButtonPrevious.setIconSize(QtCore.QSize(25, 25))
         self.pushButtonPrevious.setObjectName("pushButtonPrevious")
@@ -68,8 +73,11 @@ class Ui_Question(object):
         self.pushButtonPause.setMaximumSize(QtCore.QSize(30, 30))
         self.pushButtonPause.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(
-            ":/icons/icons/ic_pause_black_48dp.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(
+            QtGui.QPixmap(":/icons/icons/ic_pause_black_48dp.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         self.pushButtonPause.setIcon(icon1)
         self.pushButtonPause.setIconSize(QtCore.QSize(25, 25))
         self.pushButtonPause.setObjectName("pushButtonPause")
@@ -79,8 +87,11 @@ class Ui_Question(object):
         self.pushButtonNext.setMaximumSize(QtCore.QSize(50, 30))
         self.pushButtonNext.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(
-            ":/icons/icons/ic_skip_next_black_48dp.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(
+            QtGui.QPixmap(":/icons/icons/ic_skip_next_black_48dp.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         self.pushButtonNext.setIcon(icon2)
         self.pushButtonNext.setIconSize(QtCore.QSize(25, 25))
         self.pushButtonNext.setObjectName("pushButtonNext")
@@ -88,26 +99,31 @@ class Ui_Question(object):
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.listViewOptions = QtWidgets.QListView(Question)
         sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
-            self.listViewOptions.sizePolicy().hasHeightForWidth())
+            self.listViewOptions.sizePolicy().hasHeightForWidth()
+        )
         self.listViewOptions.setSizePolicy(sizePolicy)
         self.listViewOptions.setMinimumSize(QtCore.QSize(0, 0))
         font = QtGui.QFont()
         font.setFamily("宋体")
         font.setPointSize(11)
         self.listViewOptions.setFont(font)
-        self.listViewOptions.setEditTriggers(
-            QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.listViewOptions.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.listViewOptions.setProperty("showDropIndicator", False)
         self.listViewOptions.setSelectionMode(
-            QtWidgets.QAbstractItemView.SingleSelection)
+            QtWidgets.QAbstractItemView.SingleSelection
+        )
         self.listViewOptions.setSelectionBehavior(
-            QtWidgets.QAbstractItemView.SelectRows)
+            QtWidgets.QAbstractItemView.SelectRows
+        )
         self.listViewOptions.setTextElideMode(QtCore.Qt.ElideNone)
         self.listViewOptions.setSpacing(20)
         self.listViewOptions.setGridSize(QtCore.QSize(0, 30))
+        self.listViewOptions.setSelectionRectVisible(True)
         self.listViewOptions.setObjectName("listViewOptions")
         self.verticalLayout.addWidget(self.listViewOptions)
         self.verticalLayout_2.addLayout(self.verticalLayout)
@@ -118,6 +134,11 @@ class Ui_Question(object):
 
     def retranslateUi(self, Question):
         Question.setWindowTitle(
-            QtWidgets.QApplication.translate("Question", "Form", None, -1))
+            QtWidgets.QApplication.translate("Question", "Form", None, -1)
+        )
         self.pushButtonCommit.setText(
-            QtWidgets.QApplication.translate("Question", "交卷", None, -1))
+            QtWidgets.QApplication.translate("Question", "交卷", None, -1)
+        )
+
+
+from . import Icons_rc

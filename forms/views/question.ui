@@ -199,6 +199,9 @@
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
+         <property name="showDropIndicator" stdset="0">
+          <bool>false</bool>
+         </property>
          <property name="selectionMode">
           <enum>QAbstractItemView::SingleSelection</enum>
          </property>
@@ -216,6 +219,9 @@
            <width>0</width>
            <height>30</height>
           </size>
+         </property>
+         <property name="selectionRectVisible">
+          <bool>true</bool>
          </property>
         </widget>
        </item>

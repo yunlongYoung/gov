@@ -2,8 +2,8 @@ import os
 import sys
 import json
 from PySide2.QtCore import QStringListModel, Qt, QModelIndex
-from PySide2.QtWidgets import QMainWindow, QAbstractItemView
-from .views import Ui_Query
+from PySide2.QtWidgets import QMainWindow, QAbstractItemView, QPushButton
+from .views import Ui_Query, Ui_optionPanel
 
 
 class Query(QMainWindow):
@@ -28,6 +28,15 @@ class Query(QMainWindow):
         # self.question_time = dict.fromkeys(range(1, self.max_num + 1), 0)
         # print(f"self.question_time = {self.question_time}")
         self.question_time = {}
+        self.ui.question.ui.pushButtonChooseQuestion.clicked.connect(
+            self.openOptionPanel
+        )
+
+    def openOptionPanel(self):
+        self.optionPanel = Ui_optionPanel()
+        self.optionPanel.show()
+        btn1 = self.optionPanel.findChild(QPushButton, "1_0")
+        btn1.choose()
 
     def loadQuestions(self):
         """把options.json读取到model中，题目为option_model的self.num"""

@@ -1,9 +1,8 @@
 import sys
 import json
-from PySide2.QtCore import QSize, Qt
+from PySide2.QtCore import QSize
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import (
-    QApplication,
     QPushButton,
     QVBoxLayout,
     QGridLayout,
@@ -84,7 +83,7 @@ class optionsGroupButton(QWidget):
             btn.initUi()
 
 
-class optionPanel(QWidget):
+class Ui_optionPanel(QWidget):
     def __init__(self):
         super().__init__()
         grid = QGridLayout()
@@ -96,9 +95,3 @@ class optionPanel(QWidget):
         self.setLayout(grid)
         # 居中显示
         self.move((QDesktopWidget().width() - self.width() - 100) / 2, 0)
-
-
-app = QApplication()
-op = optionPanel()
-op.show()
-sys.exit(app.exec_())

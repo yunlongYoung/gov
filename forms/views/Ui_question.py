@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'd:\Desktop\gov\forms\views\question.ui',
 # licensing of 'd:\Desktop\gov\forms\views\question.ui' applies.
 #
-# Created: Fri Sep 27 12:34:33 2019
+# Created: Sat Sep 28 17:54:25 2019
 #      by: pyside2-uic  running on PySide2 5.13.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -54,6 +54,11 @@ class Ui_Question(object):
         self.labelTimeUsed.setText("")
         self.labelTimeUsed.setObjectName("labelTimeUsed")
         self.horizontalLayout.addWidget(self.labelTimeUsed)
+        self.pushButtonChooseQuestion = QtWidgets.QPushButton(Question)
+        self.pushButtonChooseQuestion.setMinimumSize(QtCore.QSize(80, 30))
+        self.pushButtonChooseQuestion.setMaximumSize(QtCore.QSize(80, 30))
+        self.pushButtonChooseQuestion.setObjectName("pushButtonChooseQuestion")
+        self.horizontalLayout.addWidget(self.pushButtonChooseQuestion)
         self.pushButtonPrevious = QtWidgets.QPushButton(Question)
         self.pushButtonPrevious.setMinimumSize(QtCore.QSize(50, 30))
         self.pushButtonPrevious.setMaximumSize(QtCore.QSize(50, 30))
@@ -138,6 +143,9 @@ class Ui_Question(object):
         )
         self.pushButtonCommit.setText(
             QtWidgets.QApplication.translate("Question", "交卷", None, -1)
+        )
+        self.pushButtonChooseQuestion.setText(
+            QtWidgets.QApplication.translate("Question", "选题", None, -1)
         )
 
 

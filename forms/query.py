@@ -33,10 +33,44 @@ class Query(QMainWindow):
         )
 
     def openOptionPanel(self):
-        self.optionPanel = Ui_optionPanel()
+        self.optionPanel = Ui_optionPanel(self.max_num)
+        self.chosenOption()
         self.optionPanel.show()
-        btn1 = self.optionPanel.findChild(QPushButton, "1_0")
-        btn1.choose()
+        self.initOptionPanelSignal()
+
+    def chosenOption(self):
+        """根据131_0的格式，131为题号，0是选项A
+        找到所有已经做了的题，把答案显示出来"""
+        for k, v in self.chosen.items():
+            btn = self.optionPanel.findChild(QPushButton, f"{k}_{v}")
+            btn.choose()
+
+    def initOptionPanelSignal(self):
+        """找到所有的数字按钮，把点击他们的信号连接到跳转题目"""
+        for i in range(1, self.max_num + 1):
+            btn = self.optionPanel.findChild(QPushButton, str(i))
+            btn.clicked.connect(self.goQuestion)
+            for j in range(4):
+                option_btn = self.optionPanel.findChild(QPushButton, f"{i}_{j}")
+                option_btn.clicked.connect(self.connect_ui_and_model)
+
+    def goQuestion(self):
+        """self.sender()方法能知道调用槽函数的发送者是谁，就不再需要lambda了"""
+        btn = self.sender()
+        num = int(btn.objectName())
+        self.current_num = num
+        self.updateQuestion()
+
+    def connect_ui_and_model(self):
+        """点击答题卡，同样model中的数据也被修改，不只是UI"""
+        option_btn = self.sender()
+        name = option_btn.objectName()
+        num, option = name.split("_")
+        if option_btn.isChosen:
+            self.chosen[num] = int(option)
+        else:
+            self.chosen.pop(num)
+        self.updateQuestion()
 
     def loadQuestions(self):
         """把options.json读取到model中，题目为option_model的self.num"""
@@ -55,7 +89,7 @@ class Query(QMainWindow):
 
     def updateQuestion(self):
         self.ui.question.ui.textEditQuestion.setHtml(
-            self._questions[str(self.current_num)]
+            f"{self.current_num}. " + self._questions[str(self.current_num)]
         )
         self.option_model.setStringList(self._options[str(self.current_num)])
         # 如果这道题已经被选过答案，则阴影突出答案

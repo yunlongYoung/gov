@@ -4,7 +4,6 @@ import json
 from PySide2.QtCore import QStringListModel, Qt, QModelIndex
 from PySide2.QtWidgets import QMainWindow, QAbstractItemView
 from .views import Ui_Query
-from .models import dbSession, Record, Operation
 
 
 class Query(QMainWindow):
@@ -29,7 +28,6 @@ class Query(QMainWindow):
         # self.question_time = dict.fromkeys(range(1, self.max_num + 1), 0)
         # print(f"self.question_time = {self.question_time}")
         self.question_time = {}
-        self.session = dbSession()
 
     def loadQuestions(self):
         """把options.json读取到model中，题目为option_model的self.num"""
@@ -138,6 +136,9 @@ class Query(QMainWindow):
     def commitQuery(self):
         # TODO 这个提交需要终止答题
         self.add_operation_time("commit query")
+        print(self.getQuestionTime())
+
+    def getQuestionTime(self):
         for i in self.datetime:
             # 如果有做题时间，即做过这道题
             datetime_list = self.datetime[i]
@@ -152,13 +153,7 @@ class Query(QMainWindow):
                     total += datetime_list[j + 1] - datetime_list[j]
                     j += 2
                 self.question_time[i] = total
-        print(self.question_time)
-        print(sum(self.question_time.values()))
-        if self.ui.totaltime is 0:
-            self.totaltime = self.ui.elapsed_time.elapsed()
-        else:
-            self.totaltime += self.ui.elapsed_time.elapsed()
-        print(self.totaltime)
+        return self.question_time
 
     def quitAction(self):
         self.add_operation_time("quit query")
@@ -166,39 +161,26 @@ class Query(QMainWindow):
         # self.paper = 'D:/Desktop/gov/data/行测/国家/json/2007.json'
         if self.ui.totaltime is 0:
             self.ui.totaltime = self.ui.elapsed_time.elapsed()
-        # operation_path = self.genPath("operation")
-        # datetime_path = self.genPath("datetime")
-        # totaltime_path = self.genPath("totaltime")
-        # chosen_path = self.genPath("chosen")
-        # current_num_path = self.genPath("current_num")
-        # # TODO 根据试卷名，把总时间保存到user_data中的json中
-        # with open(operation_path, "w", encoding="utf-8") as f1, open(
-        #     datetime_path, "w", encoding="utf-8"
-        # ) as f2, open(totaltime_path, "w", encoding="utf-8") as f3, open(
-        #     chosen_path, "w", encoding="utf-8"
-        # ) as f4, open(
-        #     current_num_path, "w", encoding="utf-8"
-        # ) as f5:
-        #     json.dump(self.operation, f1, ensure_ascii=False)
-        #     json.dump(self.datetime, f2, ensure_ascii=False)
-        #     json.dump(self.ui.totaltime, f3, ensure_ascii=False)
-        #     json.dump(self.chosen, f4, ensure_ascii=False)
-        #     json.dump(self.current_num, f5, ensure_ascii=False)
-        record = Record(
-            test_kind="行测",
-            region="国家",
-            year=2007,
-            grade="",
-            chosen="1",
-            num=1,
-            question_time=123,
-        )
-
-        operation = [
-            Operation(operation="open query", datetime=13132132, record_id=record.id),
-            Operation(operation="quit query", datetime=13132135, record_id=record.id),
-        ]
-        self.session.add(record)
-        self.session.add_all(operation)
-        self.session.commit()
-        self.session.close()
+        self.question_time = self.getQuestionTime()
+        operation_path = self.genPath("operation")
+        datetime_path = self.genPath("datetime")
+        totaltime_path = self.genPath("totaltime")
+        chosen_path = self.genPath("chosen")
+        current_num_path = self.genPath("current_num")
+        question_time_path = self.genPath("question_time")
+        # TODO 根据试卷名，把总时间保存到user_data中的json中
+        with open(operation_path, "w", encoding="utf-8") as f1, open(
+            datetime_path, "w", encoding="utf-8"
+        ) as f2, open(totaltime_path, "w", encoding="utf-8") as f3, open(
+            chosen_path, "w", encoding="utf-8"
+        ) as f4, open(
+            current_num_path, "w", encoding="utf-8"
+        ) as f5, open(
+            question_time_path, "w", encoding="utf-8"
+        ) as f6:
+            json.dump(self.operation, f1, ensure_ascii=False)
+            json.dump(self.datetime, f2, ensure_ascii=False)
+            json.dump(self.ui.totaltime, f3, ensure_ascii=False)
+            json.dump(self.chosen, f4, ensure_ascii=False)
+            json.dump(self.current_num, f5, ensure_ascii=False)
+            json.dump(self.question_time, f6, ensure_ascii=False)

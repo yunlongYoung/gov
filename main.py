@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+from PySide2.QtCore import QDir
 from PySide2.QtWidgets import QWidget, QApplication, QFileDialog
 from forms import Setup, Query, choosePaper
 
@@ -16,7 +17,7 @@ class Main(QWidget):
     def openQuery(self):
         current_paper = self.getCurrentPaper()
         if not current_paper:
-            current_paper = self.choosePaper()
+            current_paper = self.choose_paper()
         self.query = Query(current_paper)
         self.query.ui.timer.start(1000)
         self.query.ui.elapsed_time.start()
@@ -35,13 +36,14 @@ class Main(QWidget):
         else:
             return None
 
-    def choosePaper(self):
-        filename = QFileDialog.getOpenFileName(
-            self, dir="D:/Desktop/gov/data/行测/国家/txt"
-        )
-        # self.choosePaper = choosePaper()
-        # self.choosePaper.show()
-        return filename[0]
+    def choose_paper(self):
+        self.choosePaper = choosePaper()
+        self.choosePaper.show()
+        if self.choosePaper.buttonBox.accept():
+            return self.choosePaper.paper
+
+        # if self.choosePaper.accept():
+        #     print(1111)
 
 
 if __name__ == "__main__":

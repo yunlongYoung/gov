@@ -7,16 +7,16 @@ from .views import Ui_Query, Ui_optionPanel
 
 
 class Query(QMainWindow):
-    def __init__(self):
+    def __init__(self, current_paper):
         super().__init__()
         # TODO 增加其他试卷data，这个self.paper文件也已经不存在
         # TODO self.loadQuestions也需要修改路径生成方式
         # TODO 改变使用数据库吧，东西太多了。。
-        self.paper = "D:/Desktop/gov/data/行测/国家/json/2007.json"
+        self.paper = current_paper
         self._questions, self._options = self.loadQuestions()
         self.max_num = max(int(s) for s in self._questions.keys())
         self.option_model = QStringListModel()
-        self.operation, self.datetime, self.totaltime, self.chosen, self.current_num = (
+        self.operation, self.datetime, self.totaltime, self.chosen, self.current_num, self.note = (
             self.loadData()
         )
         # 使用答题已用时间初始化UI
@@ -88,6 +88,7 @@ class Query(QMainWindow):
         )
 
     def updateQuestion(self):
+        self.ui.note.setHtml(self.note[str(self.current_num)])
         self.ui.question.ui.textEditQuestion.setHtml(
             f"{self.current_num}. " + self._questions[str(self.current_num)]
         )
@@ -105,6 +106,7 @@ class Query(QMainWindow):
         self.ui.question.ui.listViewOptions.clicked.connect(self.chooseOption)
         self.ui.question.ui.pushButtonPause.clicked.connect(self.togglePauseQuestion)
         self.ui.question.ui.pushButtonCommit.clicked.connect(self.commitQuery)
+        self.ui.note.textChanged.connect(self.saveNote)
 
     def loadData(self):
         """从文件中读取操作、日期时间、已用时间、已选答案"""
@@ -113,10 +115,12 @@ class Query(QMainWindow):
         totaltime_path = self.genPath("totaltime")
         chosen_path = self.genPath("chosen")
         current_num_path = self.genPath("current_num")
+        note_path = self.genPath("note")
         if not os.path.exists(operation_path):
             # 生成所有题目的空列表
             operation = {str(k): [] for k in range(1, self.max_num + 1)}
             datetime = {str(k): [] for k in range(1, self.max_num + 1)}
+            note = {str(k): "" for k in range(1, self.max_num + 1)}
             # self.operation = dict.fromkeys(
             #     range(1, self.query_model.max_index+1), []) 这种方法有坑
             totaltime = 0
@@ -126,18 +130,21 @@ class Query(QMainWindow):
                 datetime_path, encoding="utf-8"
             ) as f2, open(totaltime_path, encoding="utf-8") as f3, open(
                 chosen_path, encoding="utf-8"
-            ) as f4:
+            ) as f4, open(
+                note_path, encoding="utf-8"
+            ) as f5:
                 operation = json.load(f1)
                 datetime = json.load(f2)
                 totaltime = json.load(f3)
                 chosen = json.load(f4)
+                note = json.load(f5)
         # 没有操作记录，也就不会有时间
         if not os.path.exists(current_num_path):
             current_num = 1
         else:
             with open(current_num_path, encoding="utf-8") as f5:
                 current_num = json.load(f5)
-        return operation, datetime, totaltime, chosen, current_num
+        return operation, datetime, totaltime, chosen, current_num, note
 
     def add_operation_time(self, name):
         self.operation[str(self.current_num)].append(name)
@@ -198,6 +205,9 @@ class Query(QMainWindow):
                 self.question_time[i] = total
         return self.question_time
 
+    def saveNote(self):
+        self.note[str(self.current_num)] = self.ui.note.toHtml()
+
     def quitAction(self):
         self.add_operation_time("quit query")
         print("saveing Data into DB...")
@@ -211,6 +221,7 @@ class Query(QMainWindow):
         chosen_path = self.genPath("chosen")
         current_num_path = self.genPath("current_num")
         question_time_path = self.genPath("question_time")
+        note_path = self.genPath("note")
         # TODO 根据试卷名，把总时间保存到user_data中的json中
         with open(operation_path, "w", encoding="utf-8") as f1, open(
             datetime_path, "w", encoding="utf-8"
@@ -220,10 +231,14 @@ class Query(QMainWindow):
             current_num_path, "w", encoding="utf-8"
         ) as f5, open(
             question_time_path, "w", encoding="utf-8"
-        ) as f6:
+        ) as f6, open(
+            note_path, "w", encoding="utf-8"
+        ) as f7:
             json.dump(self.operation, f1, ensure_ascii=False)
             json.dump(self.datetime, f2, ensure_ascii=False)
             json.dump(self.ui.totaltime, f3, ensure_ascii=False)
             json.dump(self.chosen, f4, ensure_ascii=False)
             json.dump(self.current_num, f5, ensure_ascii=False)
             json.dump(self.question_time, f6, ensure_ascii=False)
+            json.dump(self.note, f7, ensure_ascii=False)
+

@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'd:\Desktop\gov\forms\views\question.ui',
 # licensing of 'd:\Desktop\gov\forms\views\question.ui' applies.
 #
-# Created: Sat Sep 28 17:54:25 2019
+# Created: Sun Sep 29 08:23:22 2019
 #      by: pyside2-uic  running on PySide2 5.13.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -21,7 +21,7 @@ class Ui_Question(object):
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.textEditQuestion = QtWidgets.QTextEdit(Question)
         sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
         )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -39,6 +39,7 @@ class Ui_Question(object):
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.pushButtonCommit = QtWidgets.QPushButton(Question)
         self.pushButtonCommit.setMinimumSize(QtCore.QSize(50, 30))

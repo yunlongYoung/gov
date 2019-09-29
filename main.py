@@ -39,11 +39,9 @@ class Main(QWidget):
     def choose_paper(self):
         self.choosePaper = choosePaper()
         self.choosePaper.show()
-        if self.choosePaper.buttonBox.accept():
-            return self.choosePaper.paper
-
-        # if self.choosePaper.accept():
-        #     print(1111)
+        self.choosePaper.ui.buttonBox.accepted.connect(
+            lambda: print(self.choosePaper.paper)
+        )
 
 
 if __name__ == "__main__":

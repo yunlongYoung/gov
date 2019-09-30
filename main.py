@@ -15,6 +15,7 @@ class Main(QWidget):
         self.setup.ui.pushButtonQuery.clicked.connect(self.openQuery)
 
     def openQuery(self):
+        # current_paper:tuple = (科目, 地区, 试卷名)
         current_paper = self.getCurrentPaper()
         if not current_paper:
             current_paper = self.choose_paper()
@@ -37,11 +38,15 @@ class Main(QWidget):
             return None
 
     def choose_paper(self):
-        self.choosePaper = choosePaper()
-        self.choosePaper.show()
-        self.choosePaper.ui.buttonBox.accepted.connect(
-            lambda: print(self.choosePaper.paper)
-        )
+        # self.choosePaper = choosePaper()
+        # self.choosePaper.show()
+        # self.choosePaper.ui.buttonBox.accepted.connect(
+        #     lambda: print(self.choosePaper.paper)
+        # )
+        test_kind = "行测"
+        region = "国家"
+        paper = "2007"
+        return (test_kind, region, paper)
 
 
 if __name__ == "__main__":

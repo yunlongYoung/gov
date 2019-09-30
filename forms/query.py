@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from PySide2.QtCore import QStringListModel, Qt, QModelIndex
+from PySide2.QtCore import QStringListModel, Qt, QModelIndex, QDir
 from PySide2.QtWidgets import QMainWindow, QAbstractItemView, QPushButton
 from .views import Ui_Query, Ui_optionPanel
 
@@ -12,7 +12,7 @@ class Query(QMainWindow):
         # TODO 增加其他试卷data，这个self.paper文件也已经不存在
         # TODO self.loadQuestions也需要修改路径生成方式
         # TODO 改变使用数据库吧，东西太多了。。
-        self.paper = current_paper
+        self.test_kind, self.region, self.paper = current_paper
         self._questions, self._options = self.loadQuestions()
         self.max_num = max(int(s) for s in self._questions.keys())
         self.option_model = QStringListModel()
@@ -31,6 +31,7 @@ class Query(QMainWindow):
         self.ui.question.ui.pushButtonChooseQuestion.clicked.connect(
             self.openOptionPanel
         )
+        print(self.__dict__)
 
     def openOptionPanel(self):
         self.optionPanel = Ui_optionPanel(self.max_num)
@@ -56,7 +57,10 @@ class Query(QMainWindow):
 
     def goQuestion(self):
         """self.sender()方法能知道调用槽函数的发送者是谁，就不再需要lambda了"""
+        btn = self.optionPanel.findChild(QPushButton, str(self.current_num))
+        btn.setFlat(True)
         btn = self.sender()
+        btn.setFlat(False)
         num = int(btn.objectName())
         self.current_num = num
         self.updateQuestion()
@@ -74,18 +78,30 @@ class Query(QMainWindow):
 
     def loadQuestions(self):
         """把options.json读取到model中，题目为option_model的self.num"""
-        q = self.paper.replace(".", "_questions.")
-        opt = self.paper.replace(".", "_options.")
+        q = self.genPath("data", "questions")
+        opt = self.genPath("data", "options")
         with open(q, encoding="utf-8") as f, open(opt, encoding="utf-8") as g:
             return (json.load(f), json.load(g))
 
-    def genPath(self, suffix):
+    def genPath(self, _dir, suffix):
         """根据文件名生成需要分类保存的文件名，如operation、datetime等"""
-        return (
-            self.paper.replace("data", "user_data")
-            .replace("/json", "")
-            .replace(".json", f"_{suffix}.json")
-        )
+        if _dir == "data":
+            return os.path.join(
+                QDir.currentPath(),
+                _dir,
+                self.test_kind,
+                self.region,
+                "json",
+                "".join((self.paper, "_", suffix, ".json")),
+            )
+        elif _dir == "user_data":
+            return os.path.join(
+                QDir.currentPath(),
+                _dir,
+                self.test_kind,
+                self.region,
+                "".join((self.paper, "_", suffix, ".json")),
+            )
 
     def updateQuestion(self):
         self.ui.note.setHtml(self.note[str(self.current_num)])
@@ -110,12 +126,12 @@ class Query(QMainWindow):
 
     def loadData(self):
         """从文件中读取操作、日期时间、已用时间、已选答案"""
-        operation_path = self.genPath("operation")
-        datetime_path = self.genPath("datetime")
-        totaltime_path = self.genPath("totaltime")
-        chosen_path = self.genPath("chosen")
-        current_num_path = self.genPath("current_num")
-        note_path = self.genPath("note")
+        operation_path = self.genPath("user_data", "operation")
+        datetime_path = self.genPath("user_data", "datetime")
+        totaltime_path = self.genPath("user_data", "totaltime")
+        chosen_path = self.genPath("user_data", "chosen")
+        current_num_path = self.genPath("user_data", "current_num")
+        note_path = self.genPath("user_data", "note")
         if not os.path.exists(operation_path):
             # 生成所有题目的空列表
             operation = {str(k): [] for k in range(1, self.max_num + 1)}
@@ -215,13 +231,13 @@ class Query(QMainWindow):
         if self.ui.totaltime is 0:
             self.ui.totaltime = self.ui.elapsed_time.elapsed()
         self.question_time = self.getQuestionTime()
-        operation_path = self.genPath("operation")
-        datetime_path = self.genPath("datetime")
-        totaltime_path = self.genPath("totaltime")
-        chosen_path = self.genPath("chosen")
-        current_num_path = self.genPath("current_num")
-        question_time_path = self.genPath("question_time")
-        note_path = self.genPath("note")
+        operation_path = self.genPath("user_data", "operation")
+        datetime_path = self.genPath("user_data", "datetime")
+        totaltime_path = self.genPath("user_data", "totaltime")
+        chosen_path = self.genPath("user_data", "chosen")
+        current_num_path = self.genPath("user_data", "current_num")
+        question_time_path = self.genPath("user_data", "question_time")
+        note_path = self.genPath("user_data", "note")
         # TODO 根据试卷名，把总时间保存到user_data中的json中
         with open(operation_path, "w", encoding="utf-8") as f1, open(
             datetime_path, "w", encoding="utf-8"

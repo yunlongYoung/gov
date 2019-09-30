@@ -15,8 +15,8 @@ class choosePaper(QDialog):
         if self.ui.comboBoxTestKinds.currentText():
             self.testKindChanged()
         self.ui.comboBoxTestKinds.currentTextChanged.connect(self.testKindChanged)
-        self.ui.comboBoxRegion.currentTextChanged.connect(self.regionChanged)
-        self.ui.listViewPapers.clicked.connect(self.paperChanged)
+        # self.ui.comboBoxRegion.currentTextChanged.connect(self.regionChanged)
+        # self.ui.listViewPapers.clicked.connect(self.paperChanged)
         self.paper = None
 
     def initUi(self):
@@ -28,6 +28,7 @@ class choosePaper(QDialog):
         model = QStringListModel()
         model.setStringList(test_kinds)
         self.ui.comboBoxTestKinds.setModel(model)
+        self.ui.buttonBox.setDisabled(True)
 
     def testKindChanged(self):
         self.current_test_kind = self.ui.comboBoxTestKinds.currentText()
@@ -37,18 +38,20 @@ class choosePaper(QDialog):
         model.setStringList(regions)
         self.ui.comboBoxRegion.setModel(model)
 
-    def regionChanged(self):
-        self.current_region = self.ui.comboBoxRegion.currentText()
-        # ! 使用txt文件来作为判断的依据
-        paper_dir = os.path.join(
-            self.base_dir, self.current_test_kind, self.current_region, "txt"
-        )
-        papers = QDir(paper_dir).entryList(QDir.NoDotAndDotDot | QDir.AllEntries)
-        papers = [paper.split(".")[0] for paper in papers]
-        self.paper_model = QStringListModel()
-        self.paper_model.setStringList(papers)
-        self.ui.listViewPapers.setModel(self.paper_model)
+    # def regionChanged(self):
+    #     self.current_region = self.ui.comboBoxRegion.currentText()
+    #     # ! 使用txt文件来作为判断的依据
+    #     paper_dir = os.path.join(
+    #         self.base_dir, self.current_test_kind, self.current_region, "txt"
+    #     )
+    #     papers = QDir(paper_dir).entryList(QDir.NoDotAndDotDot | QDir.AllEntries)
+    #     papers = [paper.split(".")[0] for paper in papers]
+    #     self.paper_model = QStringListModel()
+    #     self.paper_model.setStringList(papers)
+    #     self.ui.listViewPapers.setModel(self.paper_model)
 
-    def paperChanged(self):
-        index = self.ui.listViewPapers.currentIndex()
-        self.paper = self.paper_model.data(index)
+    # def paperChanged(self):
+    #     index = self.ui.listViewPapers.currentIndex()
+    #     self.paper = self.paper_model.data(index)
+    #     if self.paper:
+    #         self.ui.buttonBox.setDisabled(False)

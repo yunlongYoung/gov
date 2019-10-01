@@ -249,7 +249,9 @@ class Query(QMainWindow):
             question_time_path, "w", encoding="utf-8"
         ) as f6, open(
             note_path, "w", encoding="utf-8"
-        ) as f7:
+        ) as f7, open(
+            "D:/Desktop/gov/user_data/current_paper.json", "w", encoding="utf-8"
+        ) as f8:
             json.dump(self.operation, f1, ensure_ascii=False)
             json.dump(self.datetime, f2, ensure_ascii=False)
             json.dump(self.ui.totaltime, f3, ensure_ascii=False)
@@ -257,4 +259,5 @@ class Query(QMainWindow):
             json.dump(self.current_num, f5, ensure_ascii=False)
             json.dump(self.question_time, f6, ensure_ascii=False)
             json.dump(self.note, f7, ensure_ascii=False)
+            json.dump([self.test_kind, self.region, self.paper], f8, ensure_ascii=False)
 

@@ -31,7 +31,6 @@ class Query(QMainWindow):
         self.ui.question.ui.pushButtonChooseQuestion.clicked.connect(
             self.openOptionPanel
         )
-        print(self.__dict__)
 
     def openOptionPanel(self):
         self.optionPanel = Ui_optionPanel(self.max_num)

@@ -12,12 +12,11 @@ class choosePaper(QDialog):
         self.ui.setupUi(self)
         self.base_dir = os.path.join(QDir.currentPath(), "data")
         self.initUi()
-        if self.ui.comboBoxTestKinds.currentText():
-            self.testKindChanged()
-        self.ui.comboBoxTestKinds.currentTextChanged.connect(self.testKindChanged)
-        self.ui.comboBoxRegion.currentTextChanged.connect(self.regionChanged)
-        self.ui.listViewPapers.clicked.connect(self.paperChanged)
         self.paper = None
+        # 使用currentTextChanged会出现不正确的行为
+        self.ui.comboBoxTestKinds.currentIndexChanged.connect(self.loadRegion)
+        self.ui.comboBoxRegion.currentIndexChanged.connect(self.loadPaper)
+        self.ui.listViewPapers.clicked.connect(self.setButtonAbled)
 
     def initUi(self):
         # 获得gov的当前目录，并进入其下的data目录
@@ -30,7 +29,7 @@ class choosePaper(QDialog):
         self.ui.comboBoxTestKinds.setModel(model)
         self.ui.buttonBox.setDisabled(True)
 
-    def testKindChanged(self):
+    def loadRegion(self):
         self.current_test_kind = self.ui.comboBoxTestKinds.currentText()
         region_dir = os.path.join(self.base_dir, self.current_test_kind)
         regions = QDir(region_dir).entryList(QDir.NoDotAndDotDot | QDir.AllEntries)
@@ -38,7 +37,7 @@ class choosePaper(QDialog):
         model.setStringList(regions)
         self.ui.comboBoxRegion.setModel(model)
 
-    def regionChanged(self):
+    def loadPaper(self):
         self.current_region = self.ui.comboBoxRegion.currentText()
         # ! 使用txt文件来作为判断的依据
         paper_dir = os.path.join(
@@ -50,11 +49,11 @@ class choosePaper(QDialog):
         self.paper_model.setStringList(papers)
         self.ui.listViewPapers.setModel(self.paper_model)
 
-    def paperChanged(self):
+    def setButtonAbled(self):
         index = self.ui.listViewPapers.currentIndex()
         self.paper = self.paper_model.data(index)
         if self.paper:
             self.ui.buttonBox.setDisabled(False)
-    
+
     def data(self):
         return self.current_test_kind, self.current_region, self.paper

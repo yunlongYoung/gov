@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from PySide2.QtCore import QStringListModel, Qt, QModelIndex, QDir
+from PySide2.QtCore import QStringListModel, Qt, QModelIndex, QDir, QDateTime
 from PySide2.QtWidgets import QMainWindow, QAbstractItemView, QPushButton
 from .views import Ui_Query, Ui_optionPanel
 
@@ -19,6 +19,9 @@ class Query(QMainWindow):
         self.operation, self.datetime, self.totaltime, self.chosen, self.current_num, self.note = (
             self.loadData()
         )
+        # 试卷开始的时间
+        # start_datetime = self.datetime["1"][0]
+        # print(QDateTime().fromTime_t(start_datetime).toString())
         # 使用答题已用时间初始化UI
         self.ui = Ui_Query(self.totaltime)
         self.initSignals()

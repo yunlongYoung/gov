@@ -9,26 +9,32 @@ from forms import Setup, Query, choosePaper
 class Main(QWidget):
     def __init__(self):
         super().__init__()
-        # 初始化启动界面
+        # 显示：启动界面
         self.setup = Setup()
         self.setup.show()
-        # 点击测试按钮就打开答题界面
-        # 获得当前试卷
-        self.current_paper = self.getCurrentPaper()
-        if self.current_paper:
-            # 如果存在当前试卷，则点击测试按钮，就直接打开答题界面
-            self.setup.ui.pushButtonQuery.clicked.connect(self.openQuery)
+        #   获得：上次试卷
+        last_paper = self.get_last_paper()
+        if last_paper:
+            # 如果存在 上次试卷，则
+            # 点击：测试按钮 -> 打开: 答题界面
+            self.setup.ui.pushButtonQuery.clicked.connect(
+                lambda: self.openQuery(last_paper)
+            )
         else:
-            # 如果不存在当前试卷，则打开选则试卷对话框，选择一张试卷
-            self.setup.ui.pushButtonQuery.clicked.connect(self.init_choose_paper)
+            # 如果不存在 上次试卷，则
+            # 1. 打开：选择试卷对话框
+            # 2. 选择：试卷
+            self.setup.ui.pushButtonQuery.clicked.connect(self.open_paper_chooser)
 
-    def init_choose_paper(self):
-        self.choosePaper = choosePaper()
-        self.choosePaper.show()
-        self.choosePaper.ui.buttonBox.accepted.connect(self.openPaper)
+    def open_paper_chooser(self):
+        # 显示：选试卷对话框
+        self.paper_chooser = choosePaper()
+        self.paper_chooser.show()
+        # 点击：确定按钮 -> 调用：openPaper
+        self.paper_chooser.ui.buttonBox.accepted.connect(self.openPaper)
 
     def openPaper(self):
-        self.current_paper = self.choosePaper.data()
+        self.current_paper = self.paper_chooser.data()
         self.openQuery()
 
     def openQuery(self):
@@ -42,7 +48,7 @@ class Main(QWidget):
         # 完全打开答题界面后，再关闭启动界面
         self.setup.close()
 
-    def getCurrentPaper(self):
+    def get_last_paper(self):
         """从该路径获得当前试卷，没有当前试卷则返回None"""
         if os.path.exists("D:/Desktop/gov/user_data/current_paper.json"):
             with open(

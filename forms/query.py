@@ -9,13 +9,10 @@ from .views import Ui_Query, Ui_optionPanel
 class Query(QMainWindow):
     def __init__(self, current_paper):
         super().__init__()
-        # TODO 增加其他试卷data，这个self.paper文件也已经不存在
-        # TODO self.loadQuestions也需要修改路径生成方式
-        # TODO 改变使用数据库吧，东西太多了。。
         self.test_kind, self.region, self.paper = current_paper
         self._questions, self._options = self.loadQuestions()
+        self.updateQuestion()
         self.max_num = max(int(s) for s in self._questions.keys())
-        self.option_model = QStringListModel()
         self.operation, self.datetime, self.totaltime, self.chosen, self.current_num, self.note = (
             self.loadData()
         )
@@ -26,8 +23,8 @@ class Query(QMainWindow):
         self.ui = Ui_Query(self.totaltime)
         self.initSignals()
         # 更新插件内容
+        self.option_model = QStringListModel()
         self.ui.question.ui.listViewOptions.setModel(self.option_model)
-        self.updateQuestion()
         # self.question_time = dict.fromkeys(range(1, self.max_num + 1), 0)
         # print(f"self.question_time = {self.question_time}")
         self.question_time = {}
@@ -35,21 +32,23 @@ class Query(QMainWindow):
             self.openOptionPanel
         )
 
+    def loadQuestions(self):
+        """把options.json读取到model中，题目为option_model的self.num"""
+        q = self.genPath("data", "questions")
+        opt = self.genPath("data", "options")
+        with open(q, encoding="utf-8") as f, open(opt, encoding="utf-8") as g:
+            return (json.load(f), json.load(g))
+
     def openOptionPanel(self):
         self.optionPanel = Ui_optionPanel(self.max_num)
-        self.chosenOption()
-        self.optionPanel.show()
-        self.initOptionPanelSignal()
-
-    def chosenOption(self):
-        """根据131_0的格式，131为题号，0是选项A
-        找到所有已经做了的题，把答案显示出来"""
+        # 根据131_0的格式，131为题号，0是选项A
+        # 找到所有已经做了的题，把答案显示出来
         for k, v in self.chosen.items():
-            btn = self.optionPanel.findChild(QPushButton, f"{k}_{v}")
-            btn.choose()
-
-    def initOptionPanelSignal(self):
-        """找到所有的数字按钮，把点击他们的信号连接到跳转题目"""
+            if v != -1:
+                btn = self.optionPanel.findChild(QPushButton, f"{k}_{v}")
+                btn.set_button_chosen()
+        self.optionPanel.show()
+        # 找到所有的数字按钮，把点击他们的信号连接到跳转题目
         for i in range(1, self.max_num + 1):
             btn = self.optionPanel.findChild(QPushButton, str(i))
             btn.clicked.connect(self.goQuestion)
@@ -74,16 +73,9 @@ class Query(QMainWindow):
         num, option = name.split("_")
         if option_btn.isChosen:
             self.chosen[num] = int(option)
-        else:
-            self.chosen.pop(num)
+        # else:
+        #     self.chosen[num] = -1
         self.updateQuestion()
-
-    def loadQuestions(self):
-        """把options.json读取到model中，题目为option_model的self.num"""
-        q = self.genPath("data", "questions")
-        opt = self.genPath("data", "options")
-        with open(q, encoding="utf-8") as f, open(opt, encoding="utf-8") as g:
-            return (json.load(f), json.load(g))
 
     def genPath(self, _dir, suffix):
         """根据文件名生成需要分类保存的文件名，如operation、datetime等"""
@@ -142,7 +134,7 @@ class Query(QMainWindow):
             # self.operation = dict.fromkeys(
             #     range(1, self.query_model.max_index+1), []) 这种方法有坑
             totaltime = 0
-            chosen = {}
+            chosen = {str(k): -1 for k in range(1, self.max_num + 1)}
         else:
             with open(operation_path, encoding="utf-8") as f1, open(
                 datetime_path, encoding="utf-8"
@@ -224,7 +216,7 @@ class Query(QMainWindow):
         return self.question_time
 
     def saveNote(self):
-        self.note[str(self.current_num)] = self.ui.note.toHtml()
+        self.note[str(self.current_num)] = self.ui.note.toPlainText()
 
     def quitAction(self):
         self.add_operation_time("quit query")

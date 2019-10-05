@@ -22,10 +22,10 @@ class Num(Base):
     num = Column(Integer, index=True)
     question = Column(Text)
     # 选项ABCD
-    option_A = Column(Text)
-    option_B = Column(Text)
-    option_C = Column(Text)
-    option_D = Column(Text)
+    A = Column(Text)
+    B = Column(Text)
+    C = Column(Text)
+    D = Column(Text)
     # 从试卷的大分类到最小的分类
     category_0 = Column(Text)
     category_1 = Column(Text)
@@ -34,8 +34,7 @@ class Num(Base):
     # 这个是实现精确分类和精准分析的关键
     # ! 进行交卷分析时，需要打上错误，未做，已做，蒙的，地区（国考或四川、山东、湖北等标签）
     # ! 这些提前能想到的是否直接做成表，可以存储其他信息，比如wrong，overtime等
-    label_region = Column(Text)
-    label_finished = Column(Text, default="未做")
+    label_finished = Column(Text)
     label_error = Column(Text)
     label_guess = Column(Text)
     label_0 = Column(Text)

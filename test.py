@@ -1,30 +1,24 @@
-import os
-import sys
-import json
-from PySide2 import QtCore, QtWidgets, QtGui
+# import os
+# import sys
+# import json
+# from PySide2 import QtCore, QtWidgets, QtGui
 
 
-class Question(QtWidgets.QDialog):
-    def __init__(self):
-        super().__init__()
-        self.label = QtWidgets.QLabel("2017")
-        self.button = QtWidgets.QPushButton("Hello!")
-        # self.buttonBox = QtWidgets.QDialogButtonBox()
-        # self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok)
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.addWidget(self.label)
-        layout.addWidget(self.button)
-        self.setLayout(layout)
-        self.button.clicked.connect(self.accept)
-        self.i = 1
-
-    def accept(self):
-        self.button.setFlat(bool(self.i))
-        self.i = abs(self.i - 1)
+# app = QtWidgets.QApplication()
+# w = Question()
+# w.show()
+# sys.exit(app.exec_())
 
 
-app = QtWidgets.QApplication()
-q = Question()
-q.show()
-sys.exit(app.exec_())
+from forms.models import dbSession, Test_Paper, Num, Record, Operation, Current
 
+session = dbSession()
+paper = session.query(Test_Paper).one()
+# nums = session.query(Num).filter(Num.paper_id == paper.id).all()
+num = session.query(Num).filter(Num.paper_id == paper.id).filter(Num.num == 2).one()
+print(num.id)
+print(num.paper_id)
+print(num.question)
+print(num.option_0)
+print(num.option_1)
+print(num.option_2)

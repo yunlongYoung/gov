@@ -1,13 +1,13 @@
-# import os
-# import sys
-# import json
-# from PySide2 import QtCore, QtWidgets, QtGui
+import os
+import sys
+import json
+from PySide2 import QtCore, QtWidgets, QtGui
 
 
-# app = QtWidgets.QApplication()
-# w = Question()
-# w.show()
-# sys.exit(app.exec_())
+app = QtWidgets.QApplication()
+w = Question()
+w.show()
+sys.exit(app.exec_())
 
 
 from forms.models import dbSession, Test_Paper, Num, Record, Operation, Current

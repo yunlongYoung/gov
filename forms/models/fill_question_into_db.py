@@ -1,5 +1,6 @@
 import os
 import json
+import pprint
 from PySide2.QtCore import QDir
 from db import dbSession, Test_Paper, Num
 
@@ -25,7 +26,7 @@ def get_filename(file: str):
     return os.path.splitext(file)[0]
 
 
-def get_testkind(path: str, times=2):
+def get_test_kind(path: str, times=2):
     return _split(path, times)
 
 
@@ -40,10 +41,8 @@ def get_year(filename: str):
 
 def get_grade(filename: str):
     """试题级别"""
-    if filename[5] == "地":
-        return "地市"
-    elif filename[5] == "副":
-        return "副省"
+    if "-" in filename:
+        return filename.split("-")[1][:2]
     else:
         return None
 
@@ -58,17 +57,30 @@ def put_question_into_db():
     for path in paths:
         for file in os.listdir(path):
             filename = get_filename(file)
-            testkind = get_testkind(path)
+            test_kind = get_test_kind(path)
             region = get_region(path)
             year = get_year(filename)
             grade = get_grade(filename)
-            d = get_json(os.path.join(path, file))
-            print(filename, testkind, region, year, grade)
-            break
-            if filename.endswith("questions"):
-                pass
-            else:
-                pass
+            questions = get_json(os.path.join(path, file))
+            test_paper = Test_Paper(
+                test_kind=test_kind, region=region, year=year, grade=grade
+            )
+            nums = []
+            for i in questions:
+                q = questions[i]["Q"]
+                a = questions[i]["A"]
+                b = questions[i]["B"]
+                c = questions[i]["C"]
+                d = questions[i]["D"]
+                # TODO paper_id = NULL
+                num = Num(
+                    paper_id=test_paper.id, num=int(i), question=q, A=a, B=b, C=c, D=d
+                )
+                nums.append(num)
+            session.add(test_paper)
+            session.add_all(nums)
+    session.commit()
+    session.close()
 
 
 put_question_into_db()

@@ -15,10 +15,10 @@ class Test_Paper(Base):
     test_kind = Column(String(2), default="行测")
     region = Column(String(3), default="国家")
     year = Column(String(4))
-    grade = Column(String(3), default="")
-    num = relationship("Num", backref="test_paper")
-    true_paper = relationship("True_Paper", backref="test_paper")
-    virtual_paper = relationship("True_Paper", backref="virtual_paper")
+    grade = Column(String(2), default="")
+    # num = relationship("Num", backref="test_paper")
+    # true_paper = relationship("True_Paper", backref="test_paper")
+    # virtual_paper = relationship("True_Paper", backref="virtual_paper")
 
 
 class Num(Base):
@@ -44,6 +44,7 @@ class Num_Property(Base):
      所以需要在交卷后分析时加上
     """
 
+    __tablename__ = "num_property"
     num_id = Column(Integer, ForeignKey("num.id"), primary_key=True)
     # 从试卷的大分类到最小的分类
     category_0 = Column(Text)
@@ -64,9 +65,9 @@ class True_Paper(Base):
     # 是否交卷
     paper_id = Column(Integer, ForeignKey("test_paper.id"))
     start_datetime = Column(Integer, index=True)
-    totaltime = Column(Integer, primary_key=True)
+    totaltime = Column(Integer)
     last_num = Column(Integer)
-    finished = Column(Boolean, default=False)
+    finished = Column(Boolean)
 
 
 class Virtual_Paper(Base):
@@ -77,9 +78,9 @@ class Virtual_Paper(Base):
     __tablename__ = "virtual_paper"
     id = Column(Integer, primary_key=True, autoincrement=True)
     start_datetime = Column(Integer, index=True)
-    totaltime = Column(Integer, primary_key=True)
+    totaltime = Column(Integer)
     last_num = Column(Integer)
-    finished = Column(Boolean, default=False)
+    finished = Column(Boolean)
 
 
 class Virtual_Num(Base):
@@ -98,8 +99,8 @@ class Num_Record(Base):
     # !既可能是真题，也可能是虚拟试卷
     paper_id = Column(Integer)
     num_id = Column(Integer, ForeignKey("num.id"), index=True)
-    chosen = Column(Integer, default=-1)
-    question_time = Column(Integer, default=0)
+    chosen = Column(Integer)
+    question_time = Column(Integer)
     note = Column(Text)
 
 
@@ -155,7 +156,7 @@ class Slow(Base):
 
 class Finished(Base):
     # 答的慢的问题
-    __tablename__ = "slow"
+    __tablename__ = "finished"
     id = Column(Integer, primary_key=True, autoincrement=True)
     # !既可能是真题，也可能是虚拟试卷
     paper_id = Column(Integer)
@@ -166,7 +167,7 @@ class Finished(Base):
 
 class Guessed(Base):
     # 答的慢的问题
-    __tablename__ = "slow"
+    __tablename__ = "guessed"
     id = Column(Integer, primary_key=True, autoincrement=True)
     # !既可能是真题，也可能是虚拟试卷
     paper_id = Column(Integer)

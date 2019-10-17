@@ -4,7 +4,22 @@ import json
 from PySide2.QtCore import QStringListModel, Qt, QModelIndex, QDir, QDateTime
 from PySide2.QtWidgets import QMainWindow, QAbstractItemView, QPushButton
 from .views import Ui_Query, Ui_optionPanel
-from .models import dbSession, Test_Paper, Num, Record, Operation, Current
+from .models import (
+    dbSession,
+    Test_Paper,
+    Num,
+    Num_Property,
+    True_Paper,
+    Virtual_Paper,
+    Virtual_Num,
+    Num_Record,
+    Num_Operation,
+    Overtime,
+    Wrong,
+    Slow,
+    Finished,
+    Guessed,
+)
 
 
 class Query(QMainWindow):
@@ -254,22 +269,22 @@ class Query(QMainWindow):
         #     json.dump(self.question_time, f6, ensure_ascii=False)
         #     json.dump(self.note, f7, ensure_ascii=False)
         #     json.dump([self.test_kind, self.region, self.paper], f8, ensure_ascii=False)
-        record = Record(
-            test_kind="行测",
-            region="国家",
-            year=2007,
-            grade="",
-            chosen="1",
-            num=1,
-            question_time=123,
-        )
+        # record = Record(
+        #     test_kind="行测",
+        #     region="国家",
+        #     year=2007,
+        #     grade="",
+        #     chosen="1",
+        #     num=1,
+        #     question_time=123,
+        # )
 
-        operation = [
-            Operation(operation="open query", datetime=13132132, record_id=record.id),
-            Operation(operation="quit query", datetime=13132135, record_id=record.id),
-        ]
-        self.session.add(record)
-        self.session.add_all(operation)
-        self.session.commit()
-        self.session.close()
+        # operation = [
+        #     Operation(operation="open query", datetime=13132132, record_id=record.id),
+        #     Operation(operation="quit query", datetime=13132135, record_id=record.id),
+        # ]
+        # self.session.add(record)
+        # self.session.add_all(operation)
+        # self.session.commit()
+        # self.session.close()
 

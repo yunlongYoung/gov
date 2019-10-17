@@ -1,1 +1,16 @@
-from .db import dbSession, Test_Paper, Num, Record, Operation, Current
+from .db import (
+    dbSession,
+    Test_Paper,
+    Num,
+    Num_Property,
+    True_Paper,
+    Virtual_Paper,
+    Virtual_Num,
+    Num_Record,
+    Num_Operation,
+    Overtime,
+    Wrong,
+    Slow,
+    Finished,
+    Guessed,
+)

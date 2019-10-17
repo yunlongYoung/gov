@@ -12,10 +12,10 @@ class Test_Paper(Base):
 
     __tablename__ = "test_paper"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    test_kind = Column(String(2), default="行测")
-    region = Column(String(3), default="国家")
+    test_kind = Column(String(2))
+    region = Column(String(3))
     year = Column(String(4))
-    grade = Column(String(2), default="")
+    grade = Column(String(2))
     # num = relationship("Num", backref="test_paper")
     # true_paper = relationship("True_Paper", backref="test_paper")
     # virtual_paper = relationship("True_Paper", backref="virtual_paper")

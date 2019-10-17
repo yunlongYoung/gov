@@ -17,8 +17,6 @@ import json
 
 # from pprint import pprint
 
-BASE = r"d:\Desktop\gov\data\行测"
-
 
 # 测试是否可以找出公用的题干，使用xx～xx题来辨别
 # import re
@@ -133,6 +131,8 @@ BASE = r"d:\Desktop\gov\data\行测"
 # 不然会造成一定的麻烦
 # 也就是，如果格式化原数据标准比较容易的话，最好先格式化，不然清洗算法会很复杂。
 
+BASE = r"d:\Desktop\gov\data\行测"
+
 
 def find_question():
     _num = re.compile("^\s*(\d+)[\.|．]")
@@ -142,7 +142,6 @@ def find_question():
     _D = re.compile("\s*D[\.|．]")
     # bg为背景材料，background的缩写
     _bg = re.compile("(\d+)[~|～](\d+)")
-    bg_range = []
     questions = {}
     options = {}
 
@@ -158,78 +157,73 @@ def find_question():
                 test_names["行测"][area].append(os.path.splitext(f)[0])
         return files, test_names
 
-    files, test_names = get_files()
-
     def handle_num_line(line, num):
-        current_num = int(num.group(1))
+        """把第一行中的题干存在相应的题号中"""
+        current_num = str(num.group(1))
         if current_num not in questions:
-            questions[current_num] = ""
+            questions[current_num] = {}
+            questions[current_num]["Q"] = ""
         else:
-            questions[current_num] += "<br><br><br>"
-        questions[current_num] += _num.split(line)[2]  # q is for question，题干
+            questions[current_num]["Q"] += "<br><br><br>"
+        questions[current_num]["Q"] += _num.split(line)[2]  # q is for question，题干
         return current_num
 
     def abcd_in_4_lines(f, a, current_num):
         # 属于ABCD各一行的
-        options[current_num] = []
-        options[current_num].append("A. " + a)
+        questions[current_num]["A"] = a
         line = f.readline()
-        options[current_num].append("B. " + _B.split(line, 1)[1].strip())
+        questions[current_num]["B"] = _B.split(line, 1)[1].strip()
         line = f.readline()
-        options[current_num].append("C. " + _C.split(line, 1)[1].strip())
+        questions[current_num]["C"] = _C.split(line, 1)[1].strip()
         line = f.readline()
-        options[current_num].append("D. " + _D.split(line, 1)[1].strip())
+        questions[current_num]["D"] = _D.split(line, 1)[1].strip()
 
     def abcd_in_2_lines(f, a, b, current_num):
         # 属于ABCD各一行的
-        options[current_num] = []
-        options[current_num].append("A. " + a)
-        options[current_num].append("B. " + b)
+        questions[current_num]["A"] = a
+        questions[current_num]["B"] = b
         line = f.readline()
         line = _C.split(line, 1)[1]
         c, d = _D.split(line, 1)
-        options[current_num].append("C. " + c)
-        options[current_num].append("D. " + d)
+        questions[current_num]["C"] = c
+        questions[current_num]["D"] = d
 
     def abcd_in_1_line(a, b, current_num):
         # ABCD在同一行的处理
         b, c = _C.split(b, 1)
         c, d = _D.split(c, 1)
-        options[current_num] = []
-        options[current_num].append("A. " + a)
-        options[current_num].append("B. " + b)
-        options[current_num].append("C. " + c)
-        options[current_num].append("D. " + d)
+        questions[current_num]["A"] = a
+        questions[current_num]["B"] = b
+        questions[current_num]["C"] = c
+        questions[current_num]["D"] = d
 
+    bg_range = []
+    files, test_names = get_files()
     for file in files:
-        # print(file)
-        # 在与txt同目录的json目录中生成同名的json文件
-        dirname = os.path.dirname(file)
-        jsondir = os.path.join(os.path.dirname(dirname), "json")
-        filename = os.path.basename(file).split(".")[0]
-        questions_json = os.path.join(jsondir, filename + "_questions.json")
-        options_json = os.path.join(jsondir, filename + "_options.json")
-        current_num = 0  # 当前题号
-        pos = 0
-        with open(file, encoding="utf-8") as f, open(
-            questions_json, "w", encoding="utf-8"
-        ) as g, open(options_json, "w", encoding="utf-8") as h:
+        with open(file, encoding="utf-8") as f:
+            # print(file)
+            # 在与txt同目录的json目录中生成同名的json文件
+            current_num = "1"  # 当前题号
+            pos = 0
             while 1:
                 line = f.readline()
-                if pos is 0:  # 寻找题号，上题选项后、背景资料题号后
+                if pos is 0:  # 寻找题号，上题选项后 or 背景资料题号~后
                     num = _num.match(line)
                     backgroud = _bg.search(line)
-                    if num:
+                    if num:  # 如果找到了题号
                         # print(file)
                         current_num = handle_num_line(line, num)
                         pos = 1
-                    elif backgroud:
+                    elif backgroud:  # 如果找到了背景
                         beg, end = backgroud.groups()
                         bg_range = [i for i in range(int(beg), int(end) + 1)]
                         for i in bg_range:
-                            questions[i] = {}
                             # 把background也合并到question里
-                            questions[i] = ""
+                            i = str(i)
+                            if i not in questions:
+                                questions[i] = {}
+                                questions[i]["Q"] = ""
+                            questions[i]["Q"] += "<br>" + line
                         # print(bg_range)
                         pos = 2
                 elif pos is 1:  # 寻找选项，本题题号后，题干中
@@ -247,7 +241,7 @@ def find_question():
                         pos = 0
                     else:
                         # line属于题干
-                        questions[current_num] += "<br>" + line
+                        questions[current_num]["Q"] += "<br>" + line
                 elif pos is 2:  # 寻找下题题号，背景资料中
                     num = _num.match(line)
                     if num:
@@ -257,11 +251,20 @@ def find_question():
                     else:  # 这些是背景或者题目要求
                         for i in bg_range:
                             # 把background也合并到question里
-                            questions[i] += "<br>" + line
+                            i = str(i)
+                            if i not in questions:
+                                questions[i] = {}
+                                questions[i]["Q"] = ""
+                            questions[i]["Q"] += "<br>" + line
                 if not line:
                     break
+
+        dirname = os.path.dirname(file)
+        jsondir = os.path.join(os.path.dirname(dirname), "json")
+        filename = os.path.basename(file).split(".")[0]
+        jsonfile = os.path.join(jsondir, filename + ".json")
+        with open(jsonfile, "w", encoding="utf-8") as g:
             json.dump(questions, g, ensure_ascii=False)
-            json.dump(options, h, ensure_ascii=False)
 
 
 find_question()

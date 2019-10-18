@@ -134,7 +134,20 @@ import json
 BASE = r"d:\Desktop\gov\data\行测"
 
 
-def find_question():
+def get_files(base=BASE):
+    files = []
+    test_names = {"行测": {}}
+    for area in os.listdir(base):
+        path = os.path.join(base, area, "txt")
+        if path not in test_names["行测"]:
+            test_names["行测"][area] = []
+        for f in os.listdir(path):
+            files.append(os.path.join(path, f))
+            test_names["行测"][area].append(os.path.splitext(f)[0])
+    return files, test_names
+
+
+def find_question(file):
     _num = re.compile("^\s*(\d+)[\.|．]")
     _A = re.compile("^\s*A[\.|．](.*)")
     _B = re.compile("\s*B[\.|．]")
@@ -144,18 +157,6 @@ def find_question():
     _bg = re.compile("(\d+)[~|～](\d+)")
     questions = {}
     options = {}
-
-    def get_files(base=BASE):
-        files = []
-        test_names = {"行测": {}}
-        for area in os.listdir(base):
-            path = os.path.join(base, area, "txt")
-            if path not in test_names["行测"]:
-                test_names["行测"][area] = []
-            for f in os.listdir(path):
-                files.append(os.path.join(path, f))
-                test_names["行测"][area].append(os.path.splitext(f)[0])
-        return files, test_names
 
     def handle_num_line(line, num):
         """把第一行中的题干存在相应的题号中"""
@@ -198,73 +199,79 @@ def find_question():
         questions[current_num]["D"] = d
 
     bg_range = []
+    with open(file, encoding="utf-8") as f:
+        # print(file)
+        # 在与txt同目录的json目录中生成同名的json文件
+        current_num = "1"  # 当前题号
+        pos = 0
+        while 1:
+            line = f.readline()
+            if pos is 0:  # 寻找题号，上题选项后 or 背景资料题号~后
+                num = _num.match(line)
+                backgroud = _bg.search(line)
+                if num:  # 如果找到了题号
+                    # print(file)
+                    current_num = handle_num_line(line, num)
+                    pos = 1
+                elif backgroud:  # 如果找到了背景
+                    beg, end = backgroud.groups()
+                    bg_range = [i for i in range(int(beg), int(end) + 1)]
+                    for i in bg_range:
+                        # 把background也合并到question里
+                        i = str(i)
+                        if i not in questions:
+                            questions[i] = {}
+                            questions[i]["Q"] = ""
+                        # TODO 把line中的\n替换成<br>
+                        questions[i]["Q"] += "<br>" + line
+                    # print(bg_range)
+                    pos = 2
+            elif pos is 1:  # 寻找选项，本题题号后，题干中
+                a = _A.match(line)
+                if a:
+                    a = a.group(1)
+                    if _B.search(a):
+                        a, b = _B.split(a, 1)
+                        if _C.search(b):
+                            abcd_in_1_line(a, b, current_num)
+                        else:
+                            abcd_in_2_lines(f, a, b, current_num)
+                    else:
+                        abcd_in_4_lines(f, a, current_num)
+                    pos = 0
+                else:
+                    # line属于题干
+                    questions[current_num]["Q"] += "<br>" + line
+            elif pos is 2:  # 寻找下题题号，背景资料中
+                num = _num.match(line)
+                if num:
+                    # print(file)
+                    current_num = handle_num_line(line, num)
+                    pos = 1
+                else:  # 这些是背景或者题目要求
+                    for i in bg_range:
+                        # 把background也合并到question里
+                        i = str(i)
+                        if i not in questions:
+                            questions[i] = {}
+                            questions[i]["Q"] = ""
+                        questions[i]["Q"] += "<br>" + line
+            if not line:
+                break
+
+    dirname = os.path.dirname(file)
+    jsondir = os.path.join(os.path.dirname(dirname), "json")
+    filename = os.path.basename(file).split(".")[0]
+    jsonfile = os.path.join(jsondir, filename + ".json")
+    with open(jsonfile, "w", encoding="utf-8") as g:
+        json.dump(questions, g, ensure_ascii=False)
+
+
+def gen_all_json():
     files, test_names = get_files()
     for file in files:
-        with open(file, encoding="utf-8") as f:
-            # print(file)
-            # 在与txt同目录的json目录中生成同名的json文件
-            current_num = "1"  # 当前题号
-            pos = 0
-            while 1:
-                line = f.readline()
-                if pos is 0:  # 寻找题号，上题选项后 or 背景资料题号~后
-                    num = _num.match(line)
-                    backgroud = _bg.search(line)
-                    if num:  # 如果找到了题号
-                        # print(file)
-                        current_num = handle_num_line(line, num)
-                        pos = 1
-                    elif backgroud:  # 如果找到了背景
-                        beg, end = backgroud.groups()
-                        bg_range = [i for i in range(int(beg), int(end) + 1)]
-                        for i in bg_range:
-                            # 把background也合并到question里
-                            i = str(i)
-                            if i not in questions:
-                                questions[i] = {}
-                                questions[i]["Q"] = ""
-                            questions[i]["Q"] += "<br>" + line
-                        # print(bg_range)
-                        pos = 2
-                elif pos is 1:  # 寻找选项，本题题号后，题干中
-                    a = _A.match(line)
-                    if a:
-                        a = a.group(1)
-                        if _B.search(a):
-                            a, b = _B.split(a, 1)
-                            if _C.search(b):
-                                abcd_in_1_line(a, b, current_num)
-                            else:
-                                abcd_in_2_lines(f, a, b, current_num)
-                        else:
-                            abcd_in_4_lines(f, a, current_num)
-                        pos = 0
-                    else:
-                        # line属于题干
-                        questions[current_num]["Q"] += "<br>" + line
-                elif pos is 2:  # 寻找下题题号，背景资料中
-                    num = _num.match(line)
-                    if num:
-                        # print(file)
-                        current_num = handle_num_line(line, num)
-                        pos = 1
-                    else:  # 这些是背景或者题目要求
-                        for i in bg_range:
-                            # 把background也合并到question里
-                            i = str(i)
-                            if i not in questions:
-                                questions[i] = {}
-                                questions[i]["Q"] = ""
-                            questions[i]["Q"] += "<br>" + line
-                if not line:
-                    break
-
-        dirname = os.path.dirname(file)
-        jsondir = os.path.join(os.path.dirname(dirname), "json")
-        filename = os.path.basename(file).split(".")[0]
-        jsonfile = os.path.join(jsondir, filename + ".json")
-        with open(jsonfile, "w", encoding="utf-8") as g:
-            json.dump(questions, g, ensure_ascii=False)
+        find_question(file)
 
 
-find_question()
+if __name__ == "__main__":
+    gen_all_json()

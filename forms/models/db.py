@@ -176,7 +176,8 @@ class Guessed(Base):
     guessed_reason = Column(Integer)
 
 
-engine = create_engine("sqlite:///user_data.db?check_same_thread=False", echo=True)
+# engine = create_engine("sqlite:///user_data.db?check_same_thread=False", echo=True)
+engine = create_engine("sqlite:///user_data.db?check_same_thread=False")
 
 dbSession = sessionmaker(bind=engine)
 

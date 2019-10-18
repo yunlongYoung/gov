@@ -4,7 +4,10 @@ import pprint
 from PySide2.QtCore import QDir
 from db import dbSession, Test_Paper, Num
 
+from gen_question_json import gen_all_json
 
+
+gen_all_json()
 session = dbSession()
 
 
@@ -65,10 +68,17 @@ def put_question_into_db():
             test_paper = Test_Paper(
                 test_kind=test_kind, region=region, year=year, grade=grade
             )
+            session.add(test_paper)
+            session.commit()
             nums = []
             for i in questions:
+                # TODO 今后能不能把图片存入数据库
                 q = questions[i]["Q"]
-                a = questions[i]["A"]
+                try:
+                    a = questions[i]["A"]
+                except KeyError:
+                    print(file)
+                    print(i)
                 b = questions[i]["B"]
                 c = questions[i]["C"]
                 d = questions[i]["D"]
@@ -77,7 +87,6 @@ def put_question_into_db():
                     paper_id=test_paper.id, num=int(i), question=q, A=a, B=b, C=c, D=d
                 )
                 nums.append(num)
-            session.add(test_paper)
             session.add_all(nums)
     session.commit()
     session.close()

@@ -4,6 +4,7 @@ import json
 from PySide2.QtCore import QDir
 from PySide2.QtWidgets import QWidget, QApplication, QFileDialog
 from forms import Setup, Query, paperChooser
+from forms.models import dbSession, True_Paper
 
 
 class Main:
@@ -12,32 +13,30 @@ class Main:
         # 显示：启动界面
         self.setup = Setup()
         self.setup.show()
-        #   获得：上次试卷
-        last_paper = self.get_last_paper()
-        if last_paper:
-            # 如果存在 上次试卷，则
-            # 点击：测试按钮 -> 打开: 答题界面
-            self.setup.ui.pushButtonQuery.clicked.connect(
-                lambda: self.open_query(last_paper)
-            )
-        else:
-            # 如果不存在 上次试卷，则
-            # 1. 打开：选择试卷对话框
-            # 2. 选择：试卷
-            self.setup.ui.pushButtonQuery.clicked.connect(self.open_paperChooser)
+        self.session = dbSession()
+        self.setup.ui.pushButtonQuery.clicked.connect(self.open_paper)
 
-    def get_last_paper(self):
-        """从该路径获得当前试卷，没有当前试卷则返回None"""
-        # 获得当前项目目录
-        base_dir = QDir.currentPath()
-        # 上次试卷路径
-        last_paper_path = os.path.join(base_dir, "user_data", "current_paper.json")
-        # 如果存在上次试卷，取得相关信息
-        if os.path.exists(last_paper_path):
-            with open(last_paper_path, encoding="utf-8") as f:
-                return json.load(f)
-        else:
-            return None
+    def open_paper(self):
+        def get_last_paper_id():
+            """从数据库的True_Paper的最后一行读取数据
+            如果表中没有行，或者最后一行已经finished，则返回None"""
+            last_paper = (
+                self.session.query(True_Paper)
+                .filter(True_Paper.finished == False)
+                .one_or_none()
+            )
+            if last_paper:
+                return last_paper.paper_id
+            else:
+                return None
+
+        last_paper_id = get_last_paper_id()
+        if last_paper_id:  # 如果存在 上次试卷，则
+            # 打开: 答题界面
+            self.open_query(last_paper_id)
+        else:  # 如果不存在 上次试卷，则
+            # 打开：选择试卷对话框
+            self.open_paperChooser()
 
     def open_paperChooser(self):
         """打开试卷选择对话框，并设置信号"""
@@ -45,21 +44,21 @@ class Main:
         self.paper_chooser = paperChooser()
         self.paper_chooser.show()
         # 点击：确定按钮 -> 打开：选择的试卷
-        self.paper_chooser.ui.buttonBox.accepted.connect(self.use_chosen_paper)
+        self.paper_chooser.ui.buttonBox.accepted.connect(self.use_chosen_paper_id)
 
-    def use_chosen_paper(self):
+    def use_chosen_paper_id(self):
         """使用试卷选择对话框的数据，打开选定的试卷"""
-        chosen_paper = self.paper_chooser.data()
-        self.open_query(chosen_paper)
+        chosen_paper_id = self.paper_chooser.data()
+        self.open_query(chosen_paper_id)
 
-    def open_query(self, paper):
+    def open_query(self, paper_id):
         """打开答题界面
         
         Arguments:
             paper {str tuple} -- (科目、地区、试卷名)
         """
         # 启动显示：答题界面
-        self.query = Query(paper)
+        self.query = Query(paper_id)
         self.query.ui.show()
         # 启动：定时器(每秒触发)
         self.query.ui.timer.start(1000)

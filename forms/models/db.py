@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, Column, ForeignKey, Integer, String, Text, Boolean
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -179,6 +179,7 @@ class Guessed(Base):
 # engine = create_engine("sqlite:///user_data.db?check_same_thread=False", echo=True)
 engine = create_engine("sqlite:///user_data.db?check_same_thread=False")
 
-dbSession = sessionmaker(bind=engine)
+# scoped_session 单例模式
+dbSession = scoped_session(sessionmaker(bind=engine))
 
 Base.metadata.create_all(engine)

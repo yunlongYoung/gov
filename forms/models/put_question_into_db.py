@@ -47,7 +47,7 @@ def get_grade(filename: str):
     if "-" in filename:
         return filename.split("-")[1][:2]
     else:
-        return None
+        return ""
 
 
 def get_json(file: str):

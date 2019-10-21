@@ -2,7 +2,7 @@ import os
 import json
 import pprint
 from PySide2.QtCore import QDir
-from db import dbSession, Test_Paper, Num
+from db import dbSession, Paper, Question
 
 from gen_question_json import gen_all_json
 
@@ -64,30 +64,30 @@ def put_question_into_db():
             region = get_region(path)
             year = get_year(filename)
             grade = get_grade(filename)
-            questions = get_json(os.path.join(path, file))
-            test_paper = Test_Paper(
+            test_paper = Paper(
                 test_kind=test_kind, region=region, year=year, grade=grade
             )
             session.add(test_paper)
             session.commit()
-            nums = []
-            for i in questions:
+            question_dict = get_json(os.path.join(path, file))
+            questions = []
+            for i in question_dict:
                 # TODO 今后能不能把图片存入数据库
-                q = questions[i]["Q"]
+                q = question_dict[i]["Q"]
                 try:
-                    a = questions[i]["A"]
+                    a = question_dict[i]["A"]
                 except KeyError:
                     print(file)
                     print(i)
-                b = questions[i]["B"]
-                c = questions[i]["C"]
-                d = questions[i]["D"]
+                b = question_dict[i]["B"]
+                c = question_dict[i]["C"]
+                d = question_dict[i]["D"]
                 # TODO paper_id = NULL
-                num = Num(
+                question = Question(
                     paper_id=test_paper.id, num=int(i), question=q, A=a, B=b, C=c, D=d
                 )
-                nums.append(num)
-            session.add_all(nums)
+                questions.append(question)
+            session.add_all(questions)
     session.commit()
     session.close()
 

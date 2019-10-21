@@ -1,8 +1,8 @@
 import os
-from PySide2.QtCore import QDir, QStringListModel
+from PySide2.QtCore import QDir, QStringListModel, QDateTime
 from PySide2.QtWidgets import QDialog
 from .views import Ui_DialogPaperChooser
-from forms.models import dbSession, Test_Paper
+from forms.models import dbSession, Paper, Question, Record, Virtual_Question
 
 
 class paperChooser(QDialog):
@@ -11,9 +11,9 @@ class paperChooser(QDialog):
 
     def __init__(self):
         super().__init__()
-        session = dbSession()
+        self.session = dbSession()
         # 获取：所有试卷
-        self.test_papers = session.query(Test_Paper).all()
+        self.test_papers = self.session.query(Paper).all()
         # 初始化：使用designer生成的UI
         self.ui = Ui_DialogPaperChooser()
         self.ui.setupUi(self)
@@ -83,4 +83,29 @@ class paperChooser(QDialog):
                     # print(self.paper_id)
 
     def data(self):
-        return self.paper_id
+        # 此时已经点了确定按钮，可以开始计时
+        time = QDateTime.currentDateTime().toTime_t()
+        true_paper = Record(is_practice=False, start_datetime=time)
+        self.session.add(true_paper)
+        self.session.commit()
+        # 用真题一一对应再建一套虚拟问题
+        # 查询真题对应的所有question，然后放到虚拟问题里
+        questions = (
+            self.session.query(Question)
+            .filter(Question.paper_id == self.paper_id)
+            .all()
+        )
+        # print(questions)
+        # 找到刚才建立的记录id
+        record_id = self.session.query(Record).filter(Record.finished == False)[0].id
+        virtual_questions = []
+        # TODO ! 还少两个question
+        for question in questions:
+            virtual_question = Virtual_Question(
+                record_id=record_id, question_id=question.id
+            )
+            virtual_questions.append(virtual_question)
+        self.session.add_all(virtual_questions)
+        self.session.commit()
+        self.session.close()
+        return record_id

@@ -6,38 +6,32 @@ from PySide2.QtWidgets import QMainWindow, QAbstractItemView, QPushButton
 from .views import Ui_Query, Ui_optionPanel
 from .models import (
     dbSession,
-    Test_Paper,
-    Num,
-    Num_Property,
-    True_Paper,
-    Virtual_Paper,
-    Virtual_Num,
-    Num_Record,
-    Num_Operation,
-    Overtime,
-    Wrong,
-    Slow,
-    Finished,
-    Guessed,
+    Paper,
+    Question,
+    Record,
+    Virtual_Question,
+    Question_Record,
+    Question_Property,
+    Question_Operation,
 )
 
 
 class Query(QMainWindow):
-    def __init__(self, current_paper):
+    """显示试卷和练习题的容器"""
+
+    def __init__(self, paper_id):
         super().__init__()
-        self.test_kind, self.region, self.paper = current_paper
-        self.operation, self.datetime, self.totaltime, self.chosen, self.current_num, self.note = (
-            self.loadData()
-        )
+        self.paper_id = paper_id
+        self.session = dbSession()
+        self.totaltime, self.chosen, self.current_num, self.note = self.loadData()
         self._questions, self._options = self.loadQuestions()
         self.question_time = {}
         self.max_num = max(int(s) for s in self._questions.keys())
 
         self.ui = Ui_Query(self.totaltime)
         self.option_model = QStringListModel()
-        self.ui.question.ui.listViewOptions.setModel(self.option_model)
+        self.ui.question_panel.ui.listViewOptions.setModel(self.option_model)
         self.updateQuestion()
-        self.session = dbSession()
         # 试卷开始的时间
         # start_datetime = self.datetime["1"][0]
         # print(QDateTime().fromTime_t(start_datetime).toString())
@@ -46,13 +40,18 @@ class Query(QMainWindow):
         # self.question_time = dict.fromkeys(range(1, self.max_num + 1), 0)
         # print(f"self.question_time = {self.question_time}")
         self.ui.about_close.connect(self.quitAction)
-        self.ui.question.ui.pushButtonPrevious.clicked.connect(self.previousQuestion)
-        self.ui.question.ui.pushButtonNext.clicked.connect(self.nextQuestion)
-        self.ui.question.ui.listViewOptions.clicked.connect(self.chooseOption)
-        self.ui.question.ui.pushButtonPause.clicked.connect(self.togglePauseQuestion)
-        self.ui.question.ui.pushButtonCommit.clicked.connect(self.commitQuery)
+        self.ui.question_panel.ui.pushButtonPrevious.clicked.connect(
+            self.previousQuestion
+        )
+        self.ui.question_panel.ui.pushButtonPause.clicked.connect(
+            self.togglePauseQuestion
+        )
+        self.ui.question_panel.ui.pushButtonNext.clicked.connect(self.nextQuestion)
+        self.ui.question_panel.ui.pushButtonCommit.clicked.connect(self.commitQuery)
+        self.ui.question_panel.ui.listViewOptions.clicked.connect(self.chooseOption)
+        # TODO 能不能改进，当前index改变时
         self.ui.note.textChanged.connect(self.saveNote)
-        self.ui.question.ui.pushButtonChooseQuestion.clicked.connect(
+        self.ui.question_panel.ui.pushButtonChooseQuestion.clicked.connect(
             self.openOptionPanel
         )
 
@@ -118,16 +117,6 @@ class Query(QMainWindow):
                 option_btn = self.optionPanel.findChild(QPushButton, f"{i}_{j}")
                 option_btn.clicked.connect(self.connect_ui_and_model)
 
-    def goQuestion(self):
-        """self.sender()方法能知道调用槽函数的发送者是谁，就不再需要lambda了"""
-        btn = self.optionPanel.findChild(QPushButton, str(self.current_num))
-        btn.setFlat(True)
-        btn = self.sender()
-        btn.setFlat(False)
-        num = int(btn.objectName())
-        self.current_num = num
-        self.updateQuestion()
-
     def connect_ui_and_model(self):
         """点击答题卡，同样model中的数据也被修改，不只是UI"""
         option_btn = self.sender()
@@ -137,6 +126,16 @@ class Query(QMainWindow):
             self.chosen[num] = int(option)
         # else:
         #     self.chosen[num] = -1
+        self.updateQuestion()
+
+    def goQuestion(self):
+        """self.sender()方法能知道调用槽函数的发送者是谁，就不再需要lambda了"""
+        btn = self.optionPanel.findChild(QPushButton, str(self.current_num))
+        btn.setFlat(True)
+        btn = self.sender()
+        btn.setFlat(False)
+        num = int(btn.objectName())
+        self.current_num = num
         self.updateQuestion()
 
     def genPath(self, _dir, suffix):
@@ -161,7 +160,7 @@ class Query(QMainWindow):
 
     def updateQuestion(self):
         self.ui.note.setHtml(self.note[str(self.current_num)])
-        self.ui.question.ui.textEditQuestion.setHtml(
+        self.ui.question_panel.ui.textEditQuestion.setHtml(
             f"{self.current_num}. " + self._questions[str(self.current_num)]
         )
         self.option_model.setStringList(self._options[str(self.current_num)])
@@ -169,7 +168,7 @@ class Query(QMainWindow):
         if str(self.current_num) in self.chosen:
             row = self.chosen[str(self.current_num)]
             index = self.option_model.index(row, 0)
-            self.ui.question.ui.listViewOptions.setCurrentIndex(index)
+            self.ui.question_panel.ui.listViewOptions.setCurrentIndex(index)
 
     def add_operation_time(self, name):
         self.operation[str(self.current_num)].append(name)
@@ -203,7 +202,7 @@ class Query(QMainWindow):
     def chooseOption(self):
         # TODO 还有BUG，实际保留到了前一个问题名下
         # 0, 1, 2, 3代表 A, B, C, D
-        choice = self.ui.question.ui.listViewOptions.currentIndex().row()
+        choice = self.ui.question_panel.ui.listViewOptions.currentIndex().row()
         self.chosen[str(self.current_num)] = choice
         # print(choice)
         self.nextQuestion()

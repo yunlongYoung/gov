@@ -12,7 +12,7 @@ from PySide2.QtGui import QIcon, QPixmap
 from . import Ui_Question
 
 
-class Question(QWidget):
+class Question_panel(QWidget):
     def __init__(self):
         super().__init__()
         self.ui = Ui_Question()
@@ -26,8 +26,8 @@ class Ui_Query(QMainWindow):
         super().__init__()
         # 在主窗口左侧添加题干和选项
         lsplitter = QSplitter(Qt.Vertical)
-        self.question = Question()
-        lsplitter.addWidget(self.question)
+        self.question_panel = Question_panel()
+        lsplitter.addWidget(self.question_panel)
         # 在主窗口右侧添加绘图和文本编辑，并把比例设置为3比1
         rsplitter = QSplitter(Qt.Vertical)
         self.painter = QGraphicsView(rsplitter)
@@ -40,7 +40,9 @@ class Ui_Query(QMainWindow):
         mainSplitter.addWidget(rsplitter)
         self.setCentralWidget(mainSplitter)
         # 点击暂停按钮切换图标和停继时间
-        self.question.ui.pushButtonPause.clicked.connect(self.toggle_play_and_pause)
+        self.question_panel.ui.pushButtonPause.clicked.connect(
+            self.toggle_play_and_pause
+        )
         self.totaltime = totaltime  # 当前试卷答题总时间
         self.elapsed_time = QElapsedTimer()  # 答题总时间的计时器
         self.paused = False  # 默认刚打开时，还未暂停时间
@@ -60,7 +62,7 @@ class Ui_Query(QMainWindow):
         hours = time // 3600
         minutes = time % 3600 // 60
         seconds = time % 3600 % 60
-        self.question.ui.labelTimeUsed.setText(
+        self.question_panel.ui.labelTimeUsed.setText(
             f"{hours}:{minutes:02}:{seconds:02}"
         )  # :02表示补全数字到2位，填充0
 
@@ -74,7 +76,7 @@ class Ui_Query(QMainWindow):
                 QIcon.Normal,
                 QIcon.Off,
             )
-            self.question.ui.pushButtonPause.setIcon(icon_pause)
+            self.question_panel.ui.pushButtonPause.setIcon(icon_pause)
             # 重新开始计时，包括1秒定时器和总时间计时器
             self.timer.start(1000)
             self.elapsed_time.restart()
@@ -88,7 +90,7 @@ class Ui_Query(QMainWindow):
                 QIcon.Normal,
                 QIcon.Off,
             )
-            self.question.ui.pushButtonPause.setIcon(icon_play)
+            self.question_panel.ui.pushButtonPause.setIcon(icon_play)
             self.totaltime += self.elapsed_time.elapsed()
             self.timer.stop()
             self.paused = True

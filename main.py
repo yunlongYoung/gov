@@ -4,7 +4,8 @@ import json
 from PySide2.QtCore import QDir
 from PySide2.QtWidgets import QWidget, QApplication, QFileDialog
 from forms import Setup, Query, paperChooser
-from forms.models import dbSession, True_Paper
+from forms.models import dbSession, Record
+from sqlalchemy import and_
 
 
 class Main:
@@ -20,13 +21,14 @@ class Main:
         def get_last_paper_id():
             """从数据库的True_Paper的最后一行读取数据
             如果表中没有行，或者最后一行已经finished，则返回None"""
+            # and_:使用两个条件，即未完成的真题测试
             last_paper = (
-                self.session.query(True_Paper)
-                .filter(True_Paper.finished == False)
+                self.session.query(Record)
+                .filter(and_(Record.finished == False, Record.is_practice == True))
                 .one_or_none()
             )
             if last_paper:
-                return last_paper.paper_id
+                return last_paper.id
             else:
                 return None
 

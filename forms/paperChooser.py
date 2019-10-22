@@ -82,7 +82,7 @@ class paperChooser(QDialog):
                     self.paper_id = paper.id
                     # print(self.paper_id)
 
-    def data(self):
+    def new_record(self):
         # 此时已经点了确定按钮，可以开始计时
         time = QDateTime.currentDateTime().toTime_t()
         true_paper = Record(is_practice=False, start_datetime=time)
@@ -99,7 +99,6 @@ class paperChooser(QDialog):
         # 找到刚才建立的记录id
         record_id = self.session.query(Record).filter(Record.finished == False)[0].id
         virtual_questions = []
-        # TODO ! 还少两个question
         for question in questions:
             virtual_question = Virtual_Question(
                 record_id=record_id, question_id=question.id

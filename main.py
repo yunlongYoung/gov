@@ -18,24 +18,24 @@ class Main:
         self.setup.ui.pushButtonQuery.clicked.connect(self.open_paper)
 
     def open_paper(self):
-        def get_last_paper_id():
+        def get_last_record_id():
             """从数据库的True_Paper的最后一行读取数据
             如果表中没有行，或者最后一行已经finished，则返回None"""
             # and_:使用两个条件，即未完成的真题测试
-            last_paper = (
+            last_record = (
                 self.session.query(Record)
                 .filter(and_(Record.finished == False, Record.is_practice == True))
                 .one_or_none()
             )
-            if last_paper:
-                return last_paper.id
+            if last_record:
+                return last_record.id
             else:
                 return None
 
-        last_paper_id = get_last_paper_id()
-        if last_paper_id:  # 如果存在 上次试卷，则
+        last_record_id = get_last_record_id()
+        if last_record_id:  # 如果存在 上次试卷，则
             # 打开: 答题界面
-            self.open_query(last_paper_id)
+            self.open_query(last_record_id)
         else:  # 如果不存在 上次试卷，则
             # 打开：选择试卷对话框
             self.open_paperChooser()
@@ -45,22 +45,22 @@ class Main:
         # 显示：选试卷对话框
         self.paper_chooser = paperChooser()
         self.paper_chooser.show()
-        # 点击：确定按钮 -> 打开：选择的试卷
-        self.paper_chooser.ui.buttonBox.accepted.connect(self.use_chosen_paper_id)
+        # 点击：确定按钮 -> 新建：选择的试卷为record
+        self.paper_chooser.ui.buttonBox.accepted.connect(self.add_record)
 
-    def use_chosen_paper_id(self):
-        """使用试卷选择对话框的数据，打开选定的试卷"""
-        chosen_paper_id = self.paper_chooser.data()
-        self.open_query(chosen_paper_id)
+    def add_record(self):
+        """使用试卷选择对话框的数据，使用选定的试卷，新建record"""
+        record_id = self.paper_chooser.new_record()
+        self.open_query(record_id)
 
-    def open_query(self, paper_id):
+    def open_query(self, record_id):
         """打开答题界面
         
         Arguments:
             paper {str tuple} -- (科目、地区、试卷名)
         """
         # 启动显示：答题界面
-        self.query = Query(paper_id)
+        self.query = Query(record_id)
         self.query.ui.show()
         # 启动：定时器(每秒触发)
         self.query.ui.timer.start(1000)

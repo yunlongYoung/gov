@@ -55,7 +55,7 @@ class Record(Base):
     is_practice = Column(Boolean)
     start_datetime = Column(Integer)
     totaltime = Column(Integer, default=0)
-    last_num = Column(Integer, default=1)
+    last_question_id = Column(Integer, ForeignKey("virtual_question.id"))
     finished = Column(Boolean, default=False)
 
 

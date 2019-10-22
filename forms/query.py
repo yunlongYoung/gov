@@ -3,6 +3,7 @@ import sys
 import json
 from PySide2.QtCore import QStringListModel, Qt, QModelIndex, QDir, QDateTime
 from PySide2.QtWidgets import QMainWindow, QAbstractItemView, QPushButton
+from sqlalchemy import func
 from .views import Ui_Query, Ui_optionPanel
 from .models import (
     dbSession,
@@ -19,19 +20,18 @@ from .models import (
 class Query(QMainWindow):
     """显示试卷和练习题的容器"""
 
-    def __init__(self, paper_id):
+    def __init__(self, record_id):
         super().__init__()
-        self.paper_id = paper_id
+        self.record_id = record_id
         self.session = dbSession()
-        self.totaltime, self.chosen, self.current_num, self.note = self.loadData()
-        self._questions, self._options = self.loadQuestions()
-        self.question_time = {}
-        self.max_num = max(int(s) for s in self._questions.keys())
-
+        # 获取答题总时间和当前题号
+        self.totaltime, self.current_question_id, self.max_num = self.load_data(
+            record_id
+        )
         self.ui = Ui_Query(self.totaltime)
         self.option_model = QStringListModel()
         self.ui.question_panel.ui.listViewOptions.setModel(self.option_model)
-        self.updateQuestion()
+        self.update_question()
         # 试卷开始的时间
         # start_datetime = self.datetime["1"][0]
         # print(QDateTime().fromTime_t(start_datetime).toString())
@@ -55,50 +55,37 @@ class Query(QMainWindow):
             self.openOptionPanel
         )
 
-    def loadData(self):
-        """从文件中读取操作、日期时间、已用时间、已选答案"""
-        operation_path = self.genPath("user_data", "operation")
-        datetime_path = self.genPath("user_data", "datetime")
-        totaltime_path = self.genPath("user_data", "totaltime")
-        chosen_path = self.genPath("user_data", "chosen")
-        current_num_path = self.genPath("user_data", "current_num")
-        note_path = self.genPath("user_data", "note")
-        if not os.path.exists(operation_path):
-            # 生成所有题目的空列表
-            operation = {str(k): [] for k in range(1, self.max_num + 1)}
-            datetime = {str(k): [] for k in range(1, self.max_num + 1)}
-            note = {str(k): "" for k in range(1, self.max_num + 1)}
-            # self.operation = dict.fromkeys(
-            #     range(1, self.query_model.max_index+1), []) 这种方法有坑
-            totaltime = 0
-            chosen = {str(k): -1 for k in range(1, self.max_num + 1)}
-        else:
-            with open(operation_path, encoding="utf-8") as f1, open(
-                datetime_path, encoding="utf-8"
-            ) as f2, open(totaltime_path, encoding="utf-8") as f3, open(
-                chosen_path, encoding="utf-8"
-            ) as f4, open(
-                note_path, encoding="utf-8"
-            ) as f5:
-                operation = json.load(f1)
-                datetime = json.load(f2)
-                totaltime = json.load(f3)
-                chosen = json.load(f4)
-                note = json.load(f5)
-        # 没有操作记录，也就不会有时间
-        if not os.path.exists(current_num_path):
-            current_num = 1
-        else:
-            with open(current_num_path, encoding="utf-8") as f5:
-                current_num = json.load(f5)
-        return operation, datetime, totaltime, chosen, current_num, note
+    def load_data(self, record_id):
+        record = self.session.query(Record).filter(Record.id == record_id)[0]
+        totaltime = record.totaltime
+        # ! 新建的试卷，此值为None
+        current_question_id = record.last_question_id
+        print(totaltime)
+        print(current_question_id)
+        vq = (
+            self.session.query(Virtual_Question)
+            .filter(Virtual_Question.record_id == record_id)
+            .all()
+        )
+        max_num = len(vq)
+        print(max_num)
+        if not current_question_id:
+            # 把此值改为record_id相同的第一个
+            # 记录的第一个是不是就是第一题？
+            current_question_id = vq[0].id
+            print(current_question_id)
+        return totaltime, current_question_id, max_num
 
-    def loadQuestions(self):
-        """把options.json读取到model中，题目为option_model的self.num"""
-        q = self.genPath("data", "questions")
-        opt = self.genPath("data", "options")
-        with open(q, encoding="utf-8") as f, open(opt, encoding="utf-8") as g:
-            return (json.load(f), json.load(g))
+    def update_question(self):
+        self.ui.question_panel.ui.textEditQuestion.setHtml(
+            f"{self.current_num}. " + self._questions[str(self.current_num)]
+        )
+        self.option_model.setStringList(self._options[str(self.current_num)])
+        # 如果这道题已经被选过答案，则阴影突出答案
+        if str(self.current_num) in self.chosen:
+            row = self.chosen[str(self.current_num)]
+            index = self.option_model.index(row, 0)
+            self.ui.question_panel.ui.listViewOptions.setCurrentIndex(index)
 
     def openOptionPanel(self):
         self.optionPanel = Ui_optionPanel(self.max_num)
@@ -126,7 +113,7 @@ class Query(QMainWindow):
             self.chosen[num] = int(option)
         # else:
         #     self.chosen[num] = -1
-        self.updateQuestion()
+        self.update_question()
 
     def goQuestion(self):
         """self.sender()方法能知道调用槽函数的发送者是谁，就不再需要lambda了"""
@@ -135,40 +122,8 @@ class Query(QMainWindow):
         btn = self.sender()
         btn.setFlat(False)
         num = int(btn.objectName())
-        self.current_num = num
-        self.updateQuestion()
-
-    def genPath(self, _dir, suffix):
-        """根据文件名生成需要分类保存的文件名，如operation、datetime等"""
-        if _dir == "data":
-            return os.path.join(
-                QDir.currentPath(),
-                _dir,
-                self.test_kind,
-                self.region,
-                "json",
-                "".join((self.paper, "_", suffix, ".json")),
-            )
-        elif _dir == "user_data":
-            return os.path.join(
-                QDir.currentPath(),
-                _dir,
-                self.test_kind,
-                self.region,
-                "".join((self.paper, "_", suffix, ".json")),
-            )
-
-    def updateQuestion(self):
-        self.ui.note.setHtml(self.note[str(self.current_num)])
-        self.ui.question_panel.ui.textEditQuestion.setHtml(
-            f"{self.current_num}. " + self._questions[str(self.current_num)]
-        )
-        self.option_model.setStringList(self._options[str(self.current_num)])
-        # 如果这道题已经被选过答案，则阴影突出答案
-        if str(self.current_num) in self.chosen:
-            row = self.chosen[str(self.current_num)]
-            index = self.option_model.index(row, 0)
-            self.ui.question_panel.ui.listViewOptions.setCurrentIndex(index)
+        self.current_question_id = num
+        self.update_question()
 
     def add_operation_time(self, name):
         self.operation[str(self.current_num)].append(name)
@@ -181,7 +136,7 @@ class Query(QMainWindow):
         if self.current_num is 0:
             self.current_num = self.max_num
         self.add_operation_time("passive start")
-        self.updateQuestion()
+        self.update_question()
 
     def togglePauseQuestion(self):
         if self.ui.paused:
@@ -195,9 +150,9 @@ class Query(QMainWindow):
         self.add_operation_time("next question")
         self.current_num += 1
         if self.current_num > self.max_num:
-            self.current_num = 1
+            self.current_question_id = 1
         self.add_operation_time("passive start")
-        self.updateQuestion()
+        self.update_question()
 
     def chooseOption(self):
         # TODO 还有BUG，实际保留到了前一个问题名下

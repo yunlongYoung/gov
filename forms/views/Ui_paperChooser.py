@@ -10,6 +10,7 @@
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
+
 class Ui_DialogPaperChooser(object):
     def setupUi(self, DialogPaperChooser):
         DialogPaperChooser.setObjectName("DialogPaperChooser")
@@ -44,18 +45,30 @@ class Ui_DialogPaperChooser(object):
         self.verticalLayout_3.addWidget(self.listViewPapers)
         self.buttonBox = QtWidgets.QDialogButtonBox(DialogPaperChooser)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok
+        )
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout_3.addWidget(self.buttonBox)
         self.horizontalLayout_2.addLayout(self.verticalLayout_3)
 
         self.retranslateUi(DialogPaperChooser)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), DialogPaperChooser.accept)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), DialogPaperChooser.reject)
+        QtCore.QObject.connect(
+            self.buttonBox, QtCore.SIGNAL("accepted()"), DialogPaperChooser.accept
+        )
+        QtCore.QObject.connect(
+            self.buttonBox, QtCore.SIGNAL("rejected()"), DialogPaperChooser.reject
+        )
         QtCore.QMetaObject.connectSlotsByName(DialogPaperChooser)
 
     def retranslateUi(self, DialogPaperChooser):
-        DialogPaperChooser.setWindowTitle(QtWidgets.QApplication.translate("DialogPaperChooser", "Dialog", None, -1))
-        self.labelTestKinds.setText(QtWidgets.QApplication.translate("DialogPaperChooser", "科目", None, -1))
-        self.labelRegion.setText(QtWidgets.QApplication.translate("DialogPaperChooser", "省份", None, -1))
+        DialogPaperChooser.setWindowTitle(
+            QtWidgets.QApplication.translate("DialogPaperChooser", "Dialog", None, -1)
+        )
+        self.labelTestKinds.setText(
+            QtWidgets.QApplication.translate("DialogPaperChooser", "科目", None, -1)
+        )
+        self.labelRegion.setText(
+            QtWidgets.QApplication.translate("DialogPaperChooser", "省份", None, -1)
+        )
 

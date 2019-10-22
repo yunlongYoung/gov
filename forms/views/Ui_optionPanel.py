@@ -1,5 +1,3 @@
-import sys
-import json
 from PySide2.QtCore import QSize
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import (

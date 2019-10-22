@@ -1,16 +1,13 @@
-import os
-import sys
 import json
-from PySide2.QtCore import QStringListModel, Qt, QModelIndex, QDir, QDateTime
-from PySide2.QtWidgets import QMainWindow, QAbstractItemView, QPushButton
-from sqlalchemy import func
+from PySide2.QtCore import QStringListModel
+from PySide2.QtWidgets import QMainWindow, QPushButton
 from .views import Ui_Query, Ui_optionPanel
 from .models import (
     dbSession,
     Paper,
     Question,
     Record,
-    Virtual_Question,
+    V_Question,
     Question_Record,
     Question_Property,
     Question_Operation,
@@ -25,20 +22,15 @@ class Query(QMainWindow):
         self.record_id = record_id
         self.session = dbSession()
         # 获取答题总时间和当前题号
-        self.totaltime, self.current_question_id, self.max_num = self.load_data(
+        self.totaltime, self.current_v_question_id, self.max_num = self.load_data(
             record_id
         )
+        # 使用答题已用时间初始化UI
         self.ui = Ui_Query(self.totaltime)
         self.option_model = QStringListModel()
         self.ui.question_panel.ui.listViewOptions.setModel(self.option_model)
         self.update_question()
-        # 试卷开始的时间
-        # start_datetime = self.datetime["1"][0]
-        # print(QDateTime().fromTime_t(start_datetime).toString())
-        # 使用答题已用时间初始化UI
-        # 更新插件内容
-        # self.question_time = dict.fromkeys(range(1, self.max_num + 1), 0)
-        # print(f"self.question_time = {self.question_time}")
+        # 信号连接
         self.ui.about_close.connect(self.quitAction)
         self.ui.question_panel.ui.pushButtonPrevious.clicked.connect(
             self.previousQuestion
@@ -59,31 +51,45 @@ class Query(QMainWindow):
         record = self.session.query(Record).filter(Record.id == record_id)[0]
         totaltime = record.totaltime
         # ! 新建的试卷，此值为None
-        current_question_id = record.last_question_id
-        print(totaltime)
-        print(current_question_id)
-        vq = (
-            self.session.query(Virtual_Question)
-            .filter(Virtual_Question.record_id == record_id)
+        current_v_question_id = record.last_v_question_id
+        vqs = (
+            self.session.query(V_Question)
+            .filter(V_Question.record_id == record_id)
             .all()
         )
-        max_num = len(vq)
-        print(max_num)
-        if not current_question_id:
+        max_num = len(vqs)
+        if not current_v_question_id:
             # 把此值改为record_id相同的第一个
             # 记录的第一个是不是就是第一题？
-            current_question_id = vq[0].id
-            print(current_question_id)
-        return totaltime, current_question_id, max_num
+            current_v_question_id = vqs[0].id
+        return totaltime, current_v_question_id, max_num
 
     def update_question(self):
-        self.ui.question_panel.ui.textEditQuestion.setHtml(
-            f"{self.current_num}. " + self._questions[str(self.current_num)]
+        v_question = (
+            self.session.query(V_Question)
+            .filter(V_Question.id == self.current_v_question_id)
+            .one_or_none()
         )
-        self.option_model.setStringList(self._options[str(self.current_num)])
+        question_id = v_question.question_id
+        question = (
+            self.session.query(Question).filter(Question.id == question_id).first()
+        )
+        q = f"{question.num}. {question.question}"
+        options = []
+        options.append(question.A)
+        options.append(question.B)
+        options.append(question.C)
+        options.append(question.D)
+        self.ui.question_panel.ui.textEditQuestion.setHtml(q)
+        self.option_model.setStringList(options)
         # 如果这道题已经被选过答案，则阴影突出答案
-        if str(self.current_num) in self.chosen:
-            row = self.chosen[str(self.current_num)]
+        record = (
+            self.session.query(Question_Record)
+            .filter(Question_Record.v_question_id == v_question.id)
+            .one_or_none()
+        )
+        if record:
+            row = record.chosen
             index = self.option_model.index(row, 0)
             self.ui.question_panel.ui.listViewOptions.setCurrentIndex(index)
 
@@ -122,7 +128,7 @@ class Query(QMainWindow):
         btn = self.sender()
         btn.setFlat(False)
         num = int(btn.objectName())
-        self.current_question_id = num
+        self.current_virtual_question_id = num
         self.update_question()
 
     def add_operation_time(self, name):
@@ -150,7 +156,7 @@ class Query(QMainWindow):
         self.add_operation_time("next question")
         self.current_num += 1
         if self.current_num > self.max_num:
-            self.current_question_id = 1
+            self.current_virtual_question_id = 1
         self.add_operation_time("passive start")
         self.update_question()
 

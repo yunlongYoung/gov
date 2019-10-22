@@ -10,6 +10,7 @@
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
+
 class Ui_Setup(object):
     def setupUi(self, Setup):
         Setup.setObjectName("Setup")
@@ -18,34 +19,48 @@ class Ui_Setup(object):
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        )
         self.horizontalLayout.addItem(spacerItem)
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
-        spacerItem1 = QtWidgets.QSpacerItem(20, 18, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem1 = QtWidgets.QSpacerItem(
+            20, 18, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout.addItem(spacerItem1)
         self.pushButtonQuery = QtWidgets.QPushButton(Setup)
         self.pushButtonQuery.setObjectName("pushButtonQuery")
         self.verticalLayout.addWidget(self.pushButtonQuery)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 18, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem2 = QtWidgets.QSpacerItem(
+            20, 18, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout.addItem(spacerItem2)
         self.pushButtonPractice = QtWidgets.QPushButton(Setup)
         self.pushButtonPractice.setObjectName("pushButtonPractice")
         self.verticalLayout.addWidget(self.pushButtonPractice)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 18, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem3 = QtWidgets.QSpacerItem(
+            20, 18, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout.addItem(spacerItem3)
         self.pushButtonProfile = QtWidgets.QPushButton(Setup)
         self.pushButtonProfile.setObjectName("pushButtonProfile")
         self.verticalLayout.addWidget(self.pushButtonProfile)
-        spacerItem4 = QtWidgets.QSpacerItem(20, 18, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem4 = QtWidgets.QSpacerItem(
+            20, 18, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout.addItem(spacerItem4)
         self.pushButtonSetup = QtWidgets.QPushButton(Setup)
         self.pushButtonSetup.setObjectName("pushButtonSetup")
         self.verticalLayout.addWidget(self.pushButtonSetup)
-        spacerItem5 = QtWidgets.QSpacerItem(20, 18, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem5 = QtWidgets.QSpacerItem(
+            20, 18, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout.addItem(spacerItem5)
         self.horizontalLayout.addLayout(self.verticalLayout)
-        spacerItem6 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem6 = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        )
         self.horizontalLayout.addItem(spacerItem6)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
 
@@ -54,8 +69,16 @@ class Ui_Setup(object):
 
     def retranslateUi(self, Setup):
         Setup.setWindowTitle(QtWidgets.QApplication.translate("Setup", "公考", None, -1))
-        self.pushButtonQuery.setText(QtWidgets.QApplication.translate("Setup", "测试", None, -1))
-        self.pushButtonPractice.setText(QtWidgets.QApplication.translate("Setup", "练习", None, -1))
-        self.pushButtonProfile.setText(QtWidgets.QApplication.translate("Setup", "个人数据", None, -1))
-        self.pushButtonSetup.setText(QtWidgets.QApplication.translate("Setup", "设置", None, -1))
+        self.pushButtonQuery.setText(
+            QtWidgets.QApplication.translate("Setup", "测试", None, -1)
+        )
+        self.pushButtonPractice.setText(
+            QtWidgets.QApplication.translate("Setup", "练习", None, -1)
+        )
+        self.pushButtonProfile.setText(
+            QtWidgets.QApplication.translate("Setup", "个人数据", None, -1)
+        )
+        self.pushButtonSetup.setText(
+            QtWidgets.QApplication.translate("Setup", "设置", None, -1)
+        )
 

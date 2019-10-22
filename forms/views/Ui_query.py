@@ -1,12 +1,4 @@
-import sys
-from PySide2.QtWidgets import (
-    QMainWindow,
-    QSplitter,
-    QTextEdit,
-    QGraphicsView,
-    QWidget,
-    QListView,
-)
+from PySide2.QtWidgets import QMainWindow, QSplitter, QTextEdit, QGraphicsView, QWidget
 from PySide2.QtCore import Qt, Signal, QElapsedTimer, QTimer, QDateTime
 from PySide2.QtGui import QIcon, QPixmap
 from . import Ui_Question

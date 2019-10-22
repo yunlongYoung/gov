@@ -1,8 +1,10 @@
 from sqlalchemy import create_engine, Column, ForeignKey, Integer, String, Text, Boolean
 from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
+from pathlib import Path
 
 
+DEBUG = True
 Base = declarative_base()
 
 
@@ -55,15 +57,16 @@ class Record(Base):
     is_practice = Column(Boolean)
     start_datetime = Column(Integer)
     totaltime = Column(Integer, default=0)
-    last_question_id = Column(Integer, ForeignKey("virtual_question.id"))
+    last_v_question_id = Column(Integer, ForeignKey("v_question.id"))
     finished = Column(Boolean, default=False)
 
 
-class Virtual_Question(Base):
+class V_Question(Base):
     """每张虚拟试卷(真题或练习)由哪些题组成(相同record的题)
+       Vquestion是Virtual_Question的简称
     """
 
-    __tablename__ = "virtual_question"
+    __tablename__ = "v_question"
     id = Column(Integer, primary_key=True, autoincrement=True)
     record_id = Column(Integer, ForeignKey("record.id"))
     question_id = Column(Integer, ForeignKey("question.id"))
@@ -73,7 +76,7 @@ class Question_Record(Base):
     """记录问题的已选项、答题时间、note"""
 
     __tablename__ = "question_record"
-    question_id = Column(Integer, ForeignKey("virtual_question.id"), primary_key=True)
+    v_question_id = Column(Integer, ForeignKey("v_question.id"), primary_key=True)
     chosen = Column(Integer)
     question_time = Column(Integer)
     note = Column(Text)
@@ -83,7 +86,7 @@ class Question_Property(Base):
     """每个虚拟问题的属性，交卷后可以增加动态标签"""
 
     __tablename__ = "question_property"
-    question_id = Column(Integer, ForeignKey("virtual_question.id"), primary_key=True)
+    v_question_id = Column(Integer, ForeignKey("v_question.id"), primary_key=True)
     wrong = Column(Boolean)
     slow = Column(Boolean)
     guessed = Column(Boolean)
@@ -95,7 +98,7 @@ class Question_Operation(Base):
 
     __tablename__ = "question_operation"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    question_id = Column(Integer, ForeignKey("virtual_question.id"))
+    v_question_id = Column(Integer, ForeignKey("v_question.id"))
     # 把操作转换为数字
     # 0: quit query
     # 1: open query
@@ -115,4 +118,8 @@ engine = create_engine("sqlite:///user_data.db?check_same_thread=False")
 # scoped_session 单例模式
 dbSession = scoped_session(sessionmaker(bind=engine))
 
+if DEBUG:
+    path = Path('D:\\Desktop\\gov\\user_data.db')
+    if path.exists():
+        path.unlink()
 Base.metadata.create_all(engine)

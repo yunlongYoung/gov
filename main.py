@@ -1,10 +1,7 @@
-import os
 import sys
-import json
-from PySide2.QtCore import QDir
-from PySide2.QtWidgets import QWidget, QApplication, QFileDialog
+from PySide2.QtWidgets import QApplication
 from forms import Setup, Query, paperChooser
-from forms.models import dbSession, Record
+from forms.models import dbSession, Record, fill_db_with_questions
 from sqlalchemy import and_
 
 
@@ -74,6 +71,7 @@ class Main:
 
 
 if __name__ == "__main__":
+    fill_db_with_questions()
     app = QApplication()
     w = Main()
     sys.exit(app.exec_())

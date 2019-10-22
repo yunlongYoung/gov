@@ -1,10 +1,8 @@
-import os
 import json
-import pprint
+from pathlib import Path
 from PySide2.QtCore import QDir
-from db import dbSession, Paper, Question
-
-from gen_question_json import gen_all_json
+from .db import dbSession, Paper, Question
+from .gen_question_json import gen_all_json
 
 
 gen_all_json()
@@ -14,27 +12,25 @@ session = dbSession()
 def get_paths():
     # TODO 将来地区多了需要重新设计
     # TODO 增加所有的json文件夹
-    base_dir = QDir.currentPath()
-    paths = os.path.join(base_dir, "data", "行测", "国家", "json")
+    base_dir = Path(QDir.currentPath())
+    paths = base_dir / "data" / "行测" / "国家" / "json"
     return (paths,)
 
 
-def _split(file, n):
-    for i in range(n):
-        file = os.path.split(file)[0]
-    return os.path.split(file)[1]
+def parents_stem(path, i):
+    return path.parents[i].stem
 
 
-def get_filename(file: str):
-    return os.path.splitext(file)[0]
+def get_filename(file):
+    return file.stem
 
 
-def get_test_kind(path: str, times=2):
-    return _split(path, times)
+def get_test_kind(file, i=2):
+    return parents_stem(file, i)
 
 
-def get_region(path: str, times=1):
-    return _split(path, times)
+def get_region(file, i=1):
+    return parents_stem(file, i)
 
 
 def get_year(filename: str):
@@ -55,13 +51,13 @@ def get_json(file: str):
         return json.load(f)
 
 
-def put_question_into_db():
+def fill_db_with_questions():
     paths = get_paths()
     for path in paths:
-        for file in os.listdir(path):
+        for file in path.iterdir():
             filename = get_filename(file)
-            test_kind = get_test_kind(path)
-            region = get_region(path)
+            test_kind = get_test_kind(file)
+            region = get_region(file)
             year = get_year(filename)
             grade = get_grade(filename)
             test_paper = Paper(
@@ -69,7 +65,7 @@ def put_question_into_db():
             )
             session.add(test_paper)
             session.commit()
-            question_dict = get_json(os.path.join(path, file))
+            question_dict = get_json(file)
             questions = []
             for i in question_dict:
                 # TODO 今后能不能把图片存入数据库
@@ -92,4 +88,5 @@ def put_question_into_db():
     session.close()
 
 
-put_question_into_db()
+if __name__ == "__main__":
+    fill_db_with_questions()

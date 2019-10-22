@@ -11,9 +11,9 @@
 试卷名+txt，试卷名+json，试卷名+题号+图片序号
 文件夹，国家或者山东省——18、19等
 """
-import os
 import re
 import json
+from pathlib import Path
 
 # from pprint import pprint
 
@@ -131,20 +131,19 @@ import json
 # 不然会造成一定的麻烦
 # 也就是，如果格式化原数据标准比较容易的话，最好先格式化，不然清洗算法会很复杂。
 
-BASE = r"d:\Desktop\gov\data\行测"
+BASE = Path(r"d:\Desktop\gov\data\行测")
 
 
 def get_files(base=BASE):
+    """获取行测中的所有试题txt路径"""
     files = []
-    test_names = {"行测": {}}
-    for area in os.listdir(base):
-        path = os.path.join(base, area, "txt")
-        if path not in test_names["行测"]:
-            test_names["行测"][area] = []
-        for f in os.listdir(path):
-            files.append(os.path.join(path, f))
-            test_names["行测"][area].append(os.path.splitext(f)[0])
-    return files, test_names
+    # area为省份，比如国家、四川
+    for area in base.iterdir():
+        # 源文件都放在省份的txt文件夹里
+        path = area / "txt"
+        for f in path.iterdir():
+            files.append(f)
+    return files
 
 
 def find_question(file):
@@ -259,16 +258,16 @@ def find_question(file):
             if not line:
                 break
 
-    dirname = os.path.dirname(file)
-    jsondir = os.path.join(os.path.dirname(dirname), "json")
-    filename = os.path.basename(file).split(".")[0]
-    jsonfile = os.path.join(jsondir, filename + ".json")
-    with open(jsonfile, "w", encoding="utf-8") as g:
+    jsondir = file.parents[1] / "json"  #'d:/Desktop/gov/data/行测/国家/json'
+    filename = file.stem + ".json"  # 2007.json
+    # r"d:\Desktop\gov\data\行测\国家\json\2007.json"
+    jsonfile = jsondir / filename
+    with jsonfile.open("w", encoding="utf-8") as g:
         json.dump(questions, g, ensure_ascii=False)
 
 
 def gen_all_json():
-    files, test_names = get_files()
+    files = get_files()
     for file in files:
         find_question(file)
 

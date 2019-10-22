@@ -1,5 +1,5 @@
 import json
-from PySide2.QtCore import QStringListModel
+from PySide2.QtCore import QStringListModel, QDateTime
 from PySide2.QtWidgets import QMainWindow, QPushButton
 from .views import Ui_Query, Ui_optionPanel
 from .models import (
@@ -11,6 +11,7 @@ from .models import (
     Question_Record,
     Question_Property,
     Question_Operation,
+    OP,
 )
 
 
@@ -22,9 +23,7 @@ class Query(QMainWindow):
         self.record_id = record_id
         self.session = dbSession()
         # 获取答题总时间和当前题号
-        self.totaltime, self.current_v_question_id, self.max_num = self.load_data(
-            record_id
-        )
+        self.totaltime, self.current_v_question_id, self.max_num = self.load_data()
         # 使用答题已用时间初始化UI
         self.ui = Ui_Query(self.totaltime)
         self.option_model = QStringListModel()
@@ -47,14 +46,14 @@ class Query(QMainWindow):
             self.openOptionPanel
         )
 
-    def load_data(self, record_id):
-        record = self.session.query(Record).filter(Record.id == record_id)[0]
+    def load_data(self):
+        record = self.session.query(Record).filter(Record.id == self.record_id)[0]
         totaltime = record.totaltime
         # ! 新建的试卷，此值为None
         current_v_question_id = record.last_v_question_id
         vqs = (
             self.session.query(V_Question)
-            .filter(V_Question.record_id == record_id)
+            .filter(V_Question.record_id == self.record_id)
             .all()
         )
         max_num = len(vqs)
@@ -93,6 +92,69 @@ class Query(QMainWindow):
             index = self.option_model.index(row, 0)
             self.ui.question_panel.ui.listViewOptions.setCurrentIndex(index)
 
+    def add_operation_time(self, operation):
+        question_operation = Question_Operation(
+            v_question_id=self.current_v_question_id,
+            operation=operation,
+            datetime=QDateTime.currentDateTime().toTime_t(),
+        )
+        self.session.add(question_operation)
+        self.session.commit()
+
+    def previousQuestion(self):
+        # 改变model，以改变view
+        self.add_operation_time(OP.PREVIOUS_QUESTION)
+        self.current_v_question_id -= 1
+        vq = (
+            self.session.query(V_Question)
+            .filter(V_Question.id == self.current_v_question_id)
+            .one_or_none()
+        )
+        if self.current_v_question_id < 1 or vq.record_id != self.record_id:
+            self.current_v_question_id += self.max_num
+        self.add_operation_time(OP.PASSIVE_START)
+        self.update_question()
+
+    def togglePauseQuestion(self):
+        if self.ui.paused:
+            self.add_operation_time(OP.PAUSE_QUESTION)
+        else:
+            self.add_operation_time(OP.CONTINUE_QUESTION)
+
+    def nextQuestion(self):
+        # 改变model，以改变view
+        self.add_operation_time(OP.NEXT_QUESTION)
+        self.current_v_question_id += 1
+        vq = (
+            self.session.query(V_Question)
+            .filter(V_Question.id == self.current_v_question_id)
+            .one_or_none()
+        )
+        if not vq or vq.record_id != self.record_id:
+            self.current_v_question_id -= self.max_num
+        self.add_operation_time(OP.PASSIVE_START)
+        self.update_question()
+
+    def chooseOption(self):
+        # TODO 还有BUG，实际保留到了前一个问题名下
+        # 0, 1, 2, 3代表 A, B, C, D
+        choice = self.ui.question_panel.ui.listViewOptions.currentIndex().row()
+        q_record = (
+            self.session.query(Question_Record)
+            .filter(Question_Record.v_question_id == self.current_v_question_id)
+            .one_or_none()
+        )
+        if q_record:
+            q_record.chosen = choice
+        else:
+            q_record = Question_Record(
+                v_question_id=self.current_v_question_id, chosen=choice
+            )
+            self.session.add(q_record)
+        self.session.commit()
+        # print(choice)
+        self.nextQuestion()
+
     def openOptionPanel(self):
         self.optionPanel = Ui_optionPanel(self.max_num)
         # 根据131_0的格式，131为题号，0是选项A
@@ -130,43 +192,6 @@ class Query(QMainWindow):
         num = int(btn.objectName())
         self.current_virtual_question_id = num
         self.update_question()
-
-    def add_operation_time(self, name):
-        self.operation[str(self.current_num)].append(name)
-        self.datetime[str(self.current_num)].append(self.ui.getDateTime())
-
-    def previousQuestion(self):
-        # 改变model，以改变view
-        self.add_operation_time("previous question")
-        self.current_num -= 1
-        if self.current_num is 0:
-            self.current_num = self.max_num
-        self.add_operation_time("passive start")
-        self.update_question()
-
-    def togglePauseQuestion(self):
-        if self.ui.paused:
-            self.add_operation_time("pause question")
-        else:
-            self.add_operation_time("continue question")
-
-    def nextQuestion(self):
-        # 改变model，以改变view
-        # print(f"self.chosen = {self.chosen}")
-        self.add_operation_time("next question")
-        self.current_num += 1
-        if self.current_num > self.max_num:
-            self.current_virtual_question_id = 1
-        self.add_operation_time("passive start")
-        self.update_question()
-
-    def chooseOption(self):
-        # TODO 还有BUG，实际保留到了前一个问题名下
-        # 0, 1, 2, 3代表 A, B, C, D
-        choice = self.ui.question_panel.ui.listViewOptions.currentIndex().row()
-        self.chosen[str(self.current_num)] = choice
-        # print(choice)
-        self.nextQuestion()
 
     def commitQuery(self):
         # TODO 这个提交需要终止答题

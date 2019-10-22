@@ -1,7 +1,13 @@
 import sys
 from PySide2.QtWidgets import QApplication
 from forms import Setup, Query, paperChooser
-from forms.models import dbSession, Record, fill_db_with_questions
+from forms.models import (
+    dbSession,
+    Record,
+    fill_db_with_questions,
+    Question_Operation,
+    OP,
+)
 from sqlalchemy import and_
 
 
@@ -64,7 +70,7 @@ class Main:
         # 启动：答题总时间计时器
         self.query.ui.elapsed_time.start()
         # 记录：打开试卷时间
-        self.query.add_operation_time("open query")
+        self.query.add_operation_time(OP.OPEN_QUERY)
         # 完全打开答题界面后，再
         # 关闭：启动界面
         self.setup.close()

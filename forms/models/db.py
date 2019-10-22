@@ -1,7 +1,17 @@
-from sqlalchemy import create_engine, Column, ForeignKey, Integer, String, Text, Boolean
+from sqlalchemy import (
+    create_engine,
+    Column,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    Boolean,
+    Enum,
+)
 from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from pathlib import Path
+from .enums import OP
 
 
 DEBUG = True
@@ -108,7 +118,7 @@ class Question_Operation(Base):
     # 6: continue question
     # 8: commit query
     # 9: passive start
-    operation = Column(Integer)
+    operation = Column(Enum(OP), nullable=False)
     datetime = Column(Integer, index=True)
 
 
@@ -119,7 +129,7 @@ engine = create_engine("sqlite:///user_data.db?check_same_thread=False")
 dbSession = scoped_session(sessionmaker(bind=engine))
 
 if DEBUG:
-    path = Path('D:\\Desktop\\gov\\user_data.db')
+    path = Path("D:\\Desktop\\gov\\user_data.db")
     if path.exists():
         path.unlink()
 Base.metadata.create_all(engine)

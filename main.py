@@ -21,7 +21,7 @@ class Main:
             # and_:使用两个条件，即未完成的真题测试
             last_record = (
                 self.session.query(Record)
-                .filter(and_(Record.finished == False, Record.is_practice == True))
+                .filter_by(finished=False, is_practice=True)
                 .one_or_none()
             )
             if last_record:

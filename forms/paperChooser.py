@@ -1,4 +1,4 @@
-from PySide2.QtCore import QStringListModel, QDateTime
+from PySide2.QtCore import QStringListModel, QDateTime, QModelIndex
 from PySide2.QtWidgets import QDialog
 from .views import Ui_DialogPaperChooser
 from forms.models import (
@@ -25,6 +25,8 @@ class paperChooser(QDialog):
         self.ui = Ui_DialogPaperChooser()
         self.ui.setupUi(self)
         self.show_testkinds()
+        self.show_regions()
+        self.show_papers()
         self.setModal(True)
         # 信号连接
         #   改变：科目-> 适配：地区
@@ -34,7 +36,7 @@ class paperChooser(QDialog):
         #   点击：试卷列表 -> 开放：确定按钮
         self.ui.listViewPapers.clicked.connect(self.enable_OK_button)
 
-    def columns_to_view(self, columns, view):
+    def columns_to_view(self, columns, view, chosen_row=None):
         """把一个路径下的文件在view中显示出来
         
         Arguments:
@@ -44,16 +46,20 @@ class paperChooser(QDialog):
         # 读取数据库所有row的某column
         # 1. column -> 模型
         # 2. 模型 -> view
+        # 如果需要选中row，则选中它
         model = QStringListModel()
         model.setStringList(columns)
         view.setModel(model)
+        if chosen_row is not None:
+            view.setCurrentIndex(chosen_row)
 
     def show_testkinds(self):
         # 显示：科目
         test_kinds = list(set(paper.test_kind for paper in self.test_papers))
-        self.columns_to_view(test_kinds, self.ui.comboBoxTestKinds)
+        self.columns_to_view(test_kinds, self.ui.comboBoxTestKinds, chosen_row=0)
         # 禁用：确定按钮
         self.ui.buttonBox.setDisabled(True)
+        # ! 这句不知道有没有BUG，在有多个科目时，会不会出错，下面的方法同理
 
     def show_regions(self):
         # 获取：已选科目
@@ -64,7 +70,7 @@ class paperChooser(QDialog):
             paper for paper in self.test_papers if paper.test_kind == current_test_kind
         ]
         regions = list(set(paper.region for paper in self.papers))
-        self.columns_to_view(regions, self.ui.comboBoxRegion)
+        self.columns_to_view(regions, self.ui.comboBoxRegion, chosen_row=0)
 
     def show_papers(self):
         # 获取：已选地区
@@ -97,14 +103,10 @@ class paperChooser(QDialog):
         self.session.commit()
         # 用真题一一对应再建一套虚拟问题
         # 查询真题对应的所有question，然后放到虚拟问题里
-        questions = (
-            self.session.query(Question)
-            .filter(Question.paper_id == self.paper_id)
-            .all()
-        )
+        questions = self.session.query(Question).filter_by(paper_id=self.paper_id).all()
         # print(questions)
         # 找到刚才建立的记录id
-        record_id = self.session.query(Record).filter(Record.finished == False)[0].id
+        record_id = self.session.query(Record).filter_by(finished=False)[0].id
         v_questions = []
         i = 1
         for question in questions:
@@ -116,9 +118,7 @@ class paperChooser(QDialog):
         self.session.add_all(v_questions)
         self.session.commit()
         v_questions = (
-            self.session.query(V_Question)
-            .filter(V_Question.record_id == record_id)
-            .all()
+            self.session.query(V_Question).filter_by(record_id=record_id).all()
         )
         q_records = []
         q_properties = []

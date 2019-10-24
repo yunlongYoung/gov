@@ -43,20 +43,18 @@ class Query(QMainWindow):
         self.ui.question_panel.ui.pushButtonCommit.clicked.connect(self.commit_query)
         self.ui.question_panel.ui.listViewOptions.clicked.connect(self.choose_option)
         # TODO 能不能改进，当前index改变时
-        self.ui.note.textChanged.connect(self.save_note)
+        self.ui.note.textChanged.connect(self.update_note)
         self.ui.question_panel.ui.pushButtonChooseQuestion.clicked.connect(
             self.open_option_panel
         )
 
     def load_data(self):
-        record = self.session.query(Record).filter(Record.id == self.record_id)[0]
+        record = self.session.query(Record).get(self.record_id)
         totaltime = record.totaltime
         # ! 新建的试卷，此值为None
         current_v_question_id = record.last_v_question_id
         v_questions = (
-            self.session.query(V_Question)
-            .filter(V_Question.record_id == self.record_id)
-            .all()
+            self.session.query(V_Question).filter_by(record_id=self.record_id).all()
         )
         max_num = len(v_questions)
         if not current_v_question_id:
@@ -66,15 +64,8 @@ class Query(QMainWindow):
         return totaltime, current_v_question_id, max_num
 
     def update_question(self):
-        v_question = (
-            self.session.query(V_Question)
-            .filter(V_Question.id == self.current_v_question_id)
-            .one_or_none()
-        )
-        question_id = v_question.question_id
-        question = (
-            self.session.query(Question).filter(Question.id == question_id).first()
-        )
+        v_question = self.session.query(V_Question).get(self.current_v_question_id)
+        question = self.session.query(Question).get(v_question.question_id)
         q = f"{question.num}. {question.question}"
         options = []
         options.append(f"A. {question.A}")
@@ -84,11 +75,7 @@ class Query(QMainWindow):
         self.ui.question_panel.ui.textEditQuestion.setHtml(q)
         self.option_model.setStringList(options)
         # 如果这道题已经被选过答案，则阴影突出答案
-        record = (
-            self.session.query(Q_Record)
-            .filter(Q_Record.v_question_id == v_question.id)
-            .one_or_none()
-        )
+        record = self.session.query(Q_Record).get(v_question.id)
         if record:
             row = record.chosen
             index = self.option_model.index(row, 0)
@@ -107,11 +94,7 @@ class Query(QMainWindow):
         # 改变model，以改变view
         self.add_operation_time(OP.PREVIOUS_QUESTION)
         self.current_v_question_id -= 1
-        v_question = (
-            self.session.query(V_Question)
-            .filter(V_Question.id == self.current_v_question_id)
-            .one_or_none()
-        )
+        v_question = self.session.query(V_Question).get(self.current_v_question_id)
         if self.current_v_question_id < 1 or v_question.record_id != self.record_id:
             self.current_v_question_id += self.max_num
         self.add_operation_time(OP.PASSIVE_START)
@@ -127,11 +110,7 @@ class Query(QMainWindow):
         # 改变model，以改变view
         self.add_operation_time(OP.NEXT_QUESTION)
         self.current_v_question_id += 1
-        v_question = (
-            self.session.query(V_Question)
-            .filter(V_Question.id == self.current_v_question_id)
-            .one_or_none()
-        )
+        v_question = self.session.query(V_Question).get(self.current_v_question_id)
         if not v_question or v_question.record_id != self.record_id:
             self.current_v_question_id -= self.max_num
         self.add_operation_time(OP.PASSIVE_START)
@@ -140,11 +119,7 @@ class Query(QMainWindow):
     def choose_option(self):
         # 0, 1, 2, 3代表 A, B, C, D
         choice = self.ui.question_panel.ui.listViewOptions.currentIndex().row()
-        q_record = (
-            self.session.query(Q_Record)
-            .filter(Q_Record.v_question_id == self.current_v_question_id)
-            .one_or_none()
-        )
+        q_record = self.session.query(Q_Record).get(self.current_v_question_id)
         if q_record:
             q_record.chosen = choice
         else:
@@ -159,17 +134,11 @@ class Query(QMainWindow):
         # 根据131_0的格式，131为题号，0是选项A
         # 找到所有已经做了的题，把答案显示出来
         v_questions = (
-            self.session.query(V_Question)
-            .filter(V_Question.record_id == self.record_id)
-            .all()
+            self.session.query(V_Question).filter_by(record_id=self.record_id).all()
         )
         for v_question in v_questions:
             v_num = v_question.v_num
-            q_record = (
-                self.session.query(Q_Record)
-                .filter(Q_Record.v_question_id == v_question.id)
-                .one_or_none()
-            )
+            q_record = self.session.query(Q_Record).get(v_question.id)
             if q_record:
                 chosen = q_record.chosen
                 if chosen != -1:
@@ -192,19 +161,10 @@ class Query(QMainWindow):
         v_num, chosen = name.split("_")
         v_question = (
             self.session.query(V_Question)
-            .filter(
-                and_(
-                    V_Question.record_id == self.record_id,
-                    V_Question.v_num == int(v_num),
-                )
-            )
+            .filter_by(record_id=self.record_id, v_num=int(v_num))
             .one_or_none()
         )
-        q_record = (
-            self.session.query(Q_Record)
-            .filter(Q_Record.v_question_id == v_question.id)
-            .one_or_none()
-        )
+        q_record = self.session.query(Q_Record).get(v_question.id)
         # 如果鼠标点击的按钮为选中状态，则在db中也选中该选项
         # 如果鼠标点击的按钮为非选中状态，则该题没有任何选项被选中
         if option_btn.isChosen:
@@ -221,9 +181,7 @@ class Query(QMainWindow):
         v_num = int(btn.objectName())
         v_question = (
             self.session.query(V_Question)
-            .filter(
-                and_(V_Question.record_id == self.record_id, V_Question.v_num == v_num)
-            )
+            .filter_by(record_id=self.record_id, v_num=v_num)
             .one_or_none()
         )
         self.current_v_question_id = v_question.id
@@ -237,7 +195,7 @@ class Query(QMainWindow):
         # finished变为True
         record = (
             self.session.query(Record)
-            .filter(and_(Record.id == self.record_id, Record.is_practice == False))
+            .filter_by(id=self.record_id, is_practice=False)
             .one_or_none()
         )
         record.finished = True
@@ -246,16 +204,14 @@ class Query(QMainWindow):
     def count_question_time(self):
         # 查询所有v_questions
         v_questions = (
-            self.session.query(V_Question)
-            .filter(V_Question.record_id == self.record_id)
-            .all()
+            self.session.query(V_Question).filter_by(record_id=self.record_id).all()
         )
         # 对于每个v_question，到Q_Operation中去查找有无operation
         datetimes = []
         for v_question in v_questions:
             operations = (
                 self.session.query(Q_Operation)
-                .filter(Q_Operation.v_question_id == v_question.id)
+                .filter_by(v_question_id=v_question.id)
                 .all()
             )
             if operations:
@@ -269,21 +225,15 @@ class Query(QMainWindow):
                 while j < len(datetimes):
                     total += datetimes[j + 1] - datetimes[j]
                     j += 2
-                q_record = (
-                    self.session.query(Q_Record)
-                    .filter(Q_Record.v_question_id == v_question.id)
-                    .one_or_none()
-                )
+                q_record = self.session.query(Q_Record).get(v_question.id)
                 q_record.question_time = total
         self.session.commit()
 
-    def save_note(self):
+    def update_note(self):
+        # TODO 能不能做题时只显示本次做题的note
+        # TODO 交卷时显示历次的note
         note = self.ui.note.toPlainText()
-        q_record = (
-            self.session.query(Q_Record)
-            .filter(Q_Record.v_question_id == self.current_v_question_id)
-            .one_or_none()
-        )
+        q_record = self.session.query(Q_Record).get(self.current_v_question_id)
         q_record.note = note
         self.session.commit()
 
@@ -291,9 +241,7 @@ class Query(QMainWindow):
         self.add_operation_time(OP.QUIT_QUERY)
         print("saveing Data into DB...")
         # 如果本试卷还没有交卷，则计算question_time，否则不再计算question_time
-        record = (
-            self.session.query(Record).filter(Record.id == self.record_id).one_or_none()
-        )
+        record = self.session.query(Record).get(self.record_id)
         if not record.finished:
             self.count_question_time()
         if self.ui.totaltime is 0:

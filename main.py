@@ -1,13 +1,7 @@
 import sys
 from PySide2.QtWidgets import QApplication
 from forms import Setup, Query, paperChooser
-from forms.models import (
-    dbSession,
-    Record,
-    fill_db_with_questions,
-    Question_Operation,
-    OP,
-)
+from forms.models import dbSession, Record, fill_db_with_questions, Q_Operation, OP
 from sqlalchemy import and_
 
 

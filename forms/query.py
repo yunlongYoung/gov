@@ -1,6 +1,8 @@
+from time import sleep
 import json
 from PySide2.QtCore import QStringListModel, QDateTime
 from PySide2.QtWidgets import QMainWindow, QPushButton
+from sqlalchemy import and_
 from .views import Ui_Query, Ui_optionPanel
 from .models import (
     dbSession,
@@ -8,9 +10,9 @@ from .models import (
     Question,
     Record,
     V_Question,
-    Question_Record,
-    Question_Property,
-    Question_Operation,
+    Q_Record,
+    Q_Property,
+    Q_Operation,
     OP,
 )
 
@@ -30,20 +32,20 @@ class Query(QMainWindow):
         self.ui.question_panel.ui.listViewOptions.setModel(self.option_model)
         self.update_question()
         # 信号连接
-        self.ui.about_close.connect(self.quitAction)
+        self.ui.about_close.connect(self.quit_action)
         self.ui.question_panel.ui.pushButtonPrevious.clicked.connect(
-            self.previousQuestion
+            self.previous_question
         )
         self.ui.question_panel.ui.pushButtonPause.clicked.connect(
-            self.togglePauseQuestion
+            self.toggle_pause_question
         )
-        self.ui.question_panel.ui.pushButtonNext.clicked.connect(self.nextQuestion)
-        self.ui.question_panel.ui.pushButtonCommit.clicked.connect(self.commitQuery)
-        self.ui.question_panel.ui.listViewOptions.clicked.connect(self.chooseOption)
+        self.ui.question_panel.ui.pushButtonNext.clicked.connect(self.next_question)
+        self.ui.question_panel.ui.pushButtonCommit.clicked.connect(self.commit_query)
+        self.ui.question_panel.ui.listViewOptions.clicked.connect(self.choose_option)
         # TODO 能不能改进，当前index改变时
-        self.ui.note.textChanged.connect(self.saveNote)
+        self.ui.note.textChanged.connect(self.save_note)
         self.ui.question_panel.ui.pushButtonChooseQuestion.clicked.connect(
-            self.openOptionPanel
+            self.open_option_panel
         )
 
     def load_data(self):
@@ -51,16 +53,16 @@ class Query(QMainWindow):
         totaltime = record.totaltime
         # ! 新建的试卷，此值为None
         current_v_question_id = record.last_v_question_id
-        vqs = (
+        v_questions = (
             self.session.query(V_Question)
             .filter(V_Question.record_id == self.record_id)
             .all()
         )
-        max_num = len(vqs)
+        max_num = len(v_questions)
         if not current_v_question_id:
             # 把此值改为record_id相同的第一个
             # 记录的第一个是不是就是第一题？
-            current_v_question_id = vqs[0].id
+            current_v_question_id = v_questions[0].id
         return totaltime, current_v_question_id, max_num
 
     def update_question(self):
@@ -75,16 +77,16 @@ class Query(QMainWindow):
         )
         q = f"{question.num}. {question.question}"
         options = []
-        options.append(question.A)
-        options.append(question.B)
-        options.append(question.C)
-        options.append(question.D)
+        options.append(f"A. {question.A}")
+        options.append(f"B. {question.B}")
+        options.append(f"C. {question.C}")
+        options.append(f"D. {question.D}")
         self.ui.question_panel.ui.textEditQuestion.setHtml(q)
         self.option_model.setStringList(options)
         # 如果这道题已经被选过答案，则阴影突出答案
         record = (
-            self.session.query(Question_Record)
-            .filter(Question_Record.v_question_id == v_question.id)
+            self.session.query(Q_Record)
+            .filter(Q_Record.v_question_id == v_question.id)
             .one_or_none()
         )
         if record:
@@ -93,7 +95,7 @@ class Query(QMainWindow):
             self.ui.question_panel.ui.listViewOptions.setCurrentIndex(index)
 
     def add_operation_time(self, operation):
-        question_operation = Question_Operation(
+        question_operation = Q_Operation(
             v_question_id=self.current_v_question_id,
             operation=operation,
             datetime=QDateTime.currentDateTime().toTime_t(),
@@ -101,175 +103,202 @@ class Query(QMainWindow):
         self.session.add(question_operation)
         self.session.commit()
 
-    def previousQuestion(self):
+    def previous_question(self):
         # 改变model，以改变view
         self.add_operation_time(OP.PREVIOUS_QUESTION)
         self.current_v_question_id -= 1
-        vq = (
+        v_question = (
             self.session.query(V_Question)
             .filter(V_Question.id == self.current_v_question_id)
             .one_or_none()
         )
-        if self.current_v_question_id < 1 or vq.record_id != self.record_id:
+        if self.current_v_question_id < 1 or v_question.record_id != self.record_id:
             self.current_v_question_id += self.max_num
         self.add_operation_time(OP.PASSIVE_START)
         self.update_question()
 
-    def togglePauseQuestion(self):
+    def toggle_pause_question(self):
         if self.ui.paused:
             self.add_operation_time(OP.PAUSE_QUESTION)
         else:
             self.add_operation_time(OP.CONTINUE_QUESTION)
 
-    def nextQuestion(self):
+    def next_question(self):
         # 改变model，以改变view
         self.add_operation_time(OP.NEXT_QUESTION)
         self.current_v_question_id += 1
-        vq = (
+        v_question = (
             self.session.query(V_Question)
             .filter(V_Question.id == self.current_v_question_id)
             .one_or_none()
         )
-        if not vq or vq.record_id != self.record_id:
+        if not v_question or v_question.record_id != self.record_id:
             self.current_v_question_id -= self.max_num
         self.add_operation_time(OP.PASSIVE_START)
         self.update_question()
 
-    def chooseOption(self):
-        # TODO 还有BUG，实际保留到了前一个问题名下
+    def choose_option(self):
         # 0, 1, 2, 3代表 A, B, C, D
         choice = self.ui.question_panel.ui.listViewOptions.currentIndex().row()
         q_record = (
-            self.session.query(Question_Record)
-            .filter(Question_Record.v_question_id == self.current_v_question_id)
+            self.session.query(Q_Record)
+            .filter(Q_Record.v_question_id == self.current_v_question_id)
             .one_or_none()
         )
         if q_record:
             q_record.chosen = choice
         else:
-            q_record = Question_Record(
-                v_question_id=self.current_v_question_id, chosen=choice
-            )
+            q_record = Q_Record(v_question_id=self.current_v_question_id, chosen=choice)
             self.session.add(q_record)
         self.session.commit()
         # print(choice)
-        self.nextQuestion()
+        self.next_question()
 
-    def openOptionPanel(self):
+    def open_option_panel(self):
         self.optionPanel = Ui_optionPanel(self.max_num)
         # 根据131_0的格式，131为题号，0是选项A
         # 找到所有已经做了的题，把答案显示出来
-        for k, v in self.chosen.items():
-            if v != -1:
-                btn = self.optionPanel.findChild(QPushButton, f"{k}_{v}")
-                btn.set_button_chosen()
+        v_questions = (
+            self.session.query(V_Question)
+            .filter(V_Question.record_id == self.record_id)
+            .all()
+        )
+        for v_question in v_questions:
+            v_num = v_question.v_num
+            q_record = (
+                self.session.query(Q_Record)
+                .filter(Q_Record.v_question_id == v_question.id)
+                .one_or_none()
+            )
+            if q_record:
+                chosen = q_record.chosen
+                if chosen != -1:
+                    btn = self.optionPanel.findChild(QPushButton, f"{v_num}_{chosen}")
+                    btn.set_button_chosen()
         self.optionPanel.show()
         # 找到所有的数字按钮，把点击他们的信号连接到跳转题目
         for i in range(1, self.max_num + 1):
             btn = self.optionPanel.findChild(QPushButton, str(i))
-            btn.clicked.connect(self.goQuestion)
+            btn.clicked.connect(self.goto_question)
             for j in range(4):
                 option_btn = self.optionPanel.findChild(QPushButton, f"{i}_{j}")
-                option_btn.clicked.connect(self.connect_ui_and_model)
+                # TODO 这个信号连接不太优雅
+                option_btn.clicked.connect(self.choose_with_option_panel)
 
-    def connect_ui_and_model(self):
-        """点击答题卡，同样model中的数据也被修改，不只是UI"""
+    def choose_with_option_panel(self):
+        """点击答题卡，同样db中的数据也被修改，不只是UI"""
         option_btn = self.sender()
         name = option_btn.objectName()
-        num, option = name.split("_")
+        v_num, chosen = name.split("_")
+        v_question = (
+            self.session.query(V_Question)
+            .filter(
+                and_(
+                    V_Question.record_id == self.record_id,
+                    V_Question.v_num == int(v_num),
+                )
+            )
+            .one_or_none()
+        )
+        q_record = (
+            self.session.query(Q_Record)
+            .filter(Q_Record.v_question_id == v_question.id)
+            .one_or_none()
+        )
+        # 如果鼠标点击的按钮为选中状态，则在db中也选中该选项
+        # 如果鼠标点击的按钮为非选中状态，则该题没有任何选项被选中
         if option_btn.isChosen:
-            self.chosen[num] = int(option)
-        # else:
-        #     self.chosen[num] = -1
+            q_record.chosen = int(chosen)
+        else:
+            q_record.chosen = -1
+        self.session.commit()
         self.update_question()
 
-    def goQuestion(self):
+    def goto_question(self):
         """self.sender()方法能知道调用槽函数的发送者是谁，就不再需要lambda了"""
-        btn = self.optionPanel.findChild(QPushButton, str(self.current_num))
-        btn.setFlat(True)
+        self.add_operation_time(OP.GOTO_QUESTION)
         btn = self.sender()
-        btn.setFlat(False)
-        num = int(btn.objectName())
-        self.current_virtual_question_id = num
+        v_num = int(btn.objectName())
+        v_question = (
+            self.session.query(V_Question)
+            .filter(
+                and_(V_Question.record_id == self.record_id, V_Question.v_num == v_num)
+            )
+            .one_or_none()
+        )
+        self.current_v_question_id = v_question.id
+        self.add_operation_time(OP.PASSIVE_START)
         self.update_question()
 
-    def commitQuery(self):
+    def commit_query(self):
         # TODO 这个提交需要终止答题
-        self.add_operation_time("commit query")
-        print(self.getQuestionTime())
+        self.add_operation_time(OP.COMMIT_QUERY)
+        self.count_question_time()
+        # finished变为True
+        record = (
+            self.session.query(Record)
+            .filter(and_(Record.id == self.record_id, Record.is_practice == False))
+            .one_or_none()
+        )
+        record.finished = True
+        self.session.commit()
 
-    def getQuestionTime(self):
-        for i in self.datetime:
-            # 如果有做题时间，即做过这道题
-            datetime_list = self.datetime[i]
-            if datetime_list:
-                # 把datetime_list变成偶数长度
-                if len(datetime_list) % 2:
-                    datetime_list = datetime_list[:-1]
-                # 两两相减再加一起
+    def count_question_time(self):
+        # 查询所有v_questions
+        v_questions = (
+            self.session.query(V_Question)
+            .filter(V_Question.record_id == self.record_id)
+            .all()
+        )
+        # 对于每个v_question，到Q_Operation中去查找有无operation
+        datetimes = []
+        for v_question in v_questions:
+            operations = (
+                self.session.query(Q_Operation)
+                .filter(Q_Operation.v_question_id == v_question.id)
+                .all()
+            )
+            if operations:
+                datetimes = [operation.datetime for operation in operations]
+                # 两两成对，舍去最后一位
+                if len(datetimes) % 2:
+                    datetimes = datetimes[:-1]
                 total = 0
                 j = 0
-                while j < len(datetime_list):
-                    total += datetime_list[j + 1] - datetime_list[j]
+                # 将每两位的差加在一起，就是该问题的总时间
+                while j < len(datetimes):
+                    total += datetimes[j + 1] - datetimes[j]
                     j += 2
-                self.question_time[i] = total
-        return self.question_time
+                q_record = (
+                    self.session.query(Q_Record)
+                    .filter(Q_Record.v_question_id == v_question.id)
+                    .one_or_none()
+                )
+                q_record.question_time = total
+        self.session.commit()
 
-    def saveNote(self):
-        self.note[str(self.current_num)] = self.ui.note.toPlainText()
+    def save_note(self):
+        note = self.ui.note.toPlainText()
+        q_record = (
+            self.session.query(Q_Record)
+            .filter(Q_Record.v_question_id == self.current_v_question_id)
+            .one_or_none()
+        )
+        q_record.note = note
+        self.session.commit()
 
-    def quitAction(self):
-        self.add_operation_time("quit query")
+    def quit_action(self):
+        self.add_operation_time(OP.QUIT_QUERY)
         print("saveing Data into DB...")
-        # self.paper = 'D:/Desktop/gov/data/行测/国家/json/2007.json'
+        # 如果本试卷还没有交卷，则计算question_time，否则不再计算question_time
+        record = (
+            self.session.query(Record).filter(Record.id == self.record_id).one_or_none()
+        )
+        if not record.finished:
+            self.count_question_time()
         if self.ui.totaltime is 0:
+            # ! totaltime的单位是毫秒
             self.ui.totaltime = self.ui.elapsed_time.elapsed()
-        # self.question_time = self.getQuestionTime()
-        # operation_path = self.genPath("user_data", "operation")
-        # datetime_path = self.genPath("user_data", "datetime")
-        # totaltime_path = self.genPath("user_data", "totaltime")
-        # chosen_path = self.genPath("user_data", "chosen")
-        # current_num_path = self.genPath("user_data", "current_num")
-        # question_time_path = self.genPath("user_data", "question_time")
-        # note_path = self.genPath("user_data", "note")
-        # # TODO 根据试卷名，把总时间保存到user_data中的json中
-        # with open(operation_path, "w", encoding="utf-8") as f1, open(
-        #     datetime_path, "w", encoding="utf-8"
-        # ) as f2, open(totaltime_path, "w", encoding="utf-8") as f3, open(
-        #     chosen_path, "w", encoding="utf-8"
-        # ) as f4, open(
-        #     current_num_path, "w", encoding="utf-8"
-        # ) as f5, open(
-        #     question_time_path, "w", encoding="utf-8"
-        # ) as f6, open(
-        #     note_path, "w", encoding="utf-8"
-        # ) as f7, open(
-        #     "D:/Desktop/gov/user_data/current_paper.json", "w", encoding="utf-8"
-        # ) as f8:
-        #     json.dump(self.operation, f1, ensure_ascii=False)
-        #     json.dump(self.datetime, f2, ensure_ascii=False)
-        #     json.dump(self.ui.totaltime, f3, ensure_ascii=False)
-        #     json.dump(self.chosen, f4, ensure_ascii=False)
-        #     json.dump(self.current_num, f5, ensure_ascii=False)
-        #     json.dump(self.question_time, f6, ensure_ascii=False)
-        #     json.dump(self.note, f7, ensure_ascii=False)
-        #     json.dump([self.test_kind, self.region, self.paper], f8, ensure_ascii=False)
-        # record = Record(
-        #     test_kind="行测",
-        #     region="国家",
-        #     year=2007,
-        #     grade="",
-        #     chosen="1",
-        #     num=1,
-        #     question_time=123,
-        # )
-
-        # operation = [
-        #     Operation(operation="open query", datetime=13132132, record_id=record.id),
-        #     Operation(operation="quit query", datetime=13132135, record_id=record.id),
-        # ]
-        # self.session.add(record)
-        # self.session.add_all(operation)
-        # self.session.commit()
-        # self.session.close()
-
+        record.totaltime = self.ui.totaltime
+        record.last_v_question_id = self.current_v_question_id
+        self.session.commit()

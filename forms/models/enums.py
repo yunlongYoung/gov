@@ -8,5 +8,6 @@ class OP(Enum):
     NEXT_QUESTION = auto()
     PAUSE_QUESTION = auto()
     CONTINUE_QUESTION = auto()
+    GOTO_QUESTION = auto()
     COMMIT_QUERY = auto()
     PASSIVE_START = auto()

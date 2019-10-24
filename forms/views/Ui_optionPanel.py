@@ -1,6 +1,8 @@
+# import sys
 from PySide2.QtCore import QSize
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import (
+    # QApplication,
     QPushButton,
     QVBoxLayout,
     QGridLayout,
@@ -28,8 +30,6 @@ class optionButton(QPushButton):
         self.name = name
         # if this option is chosen (option is among ABCD)
         self.isChosen = False
-        # toggle the choose state
-        self.clicked.connect(self.toggle_chosen)
 
     def set_button_origin(self):
         """set button origin style
@@ -55,6 +55,7 @@ class optionButton(QPushButton):
         toggle text between rectangle & A|B|C|D
         toggle color between red|black
         """
+        # print(f"self.isChosen = {self.isChosen}")
         if self.isChosen:
             self.set_button_origin()
         else:
@@ -113,6 +114,7 @@ class optionsGroupButton(QWidget):
             else:
                 btn.set_button_origin()
 
+
 class Ui_optionPanel(QDialog):
     def __init__(self, max_num):
         super().__init__()
@@ -128,3 +130,10 @@ class Ui_optionPanel(QDialog):
         self.setModal(True)
         # center this widget
         self.move((QDesktopWidget().width() - self.width() - 100) / 2, 0)
+
+
+# if __name__ == "__main__":
+#     app = QApplication()
+#     w = Ui_optionPanel(140)
+#     w.show()
+#     sys.exit(app.exec_())

@@ -5,8 +5,8 @@ from .db import (
     Question,
     Record,
     V_Question,
-    Question_Record,
-    Question_Operation,
-    Question_Property,
+    Q_Record,
+    Q_Operation,
+    Q_Property,
 )
 from .enums import OP

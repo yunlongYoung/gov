@@ -1,7 +1,15 @@
 from PySide2.QtCore import QStringListModel, QDateTime
 from PySide2.QtWidgets import QDialog
 from .views import Ui_DialogPaperChooser
-from forms.models import dbSession, Paper, Question, Record, V_Question
+from forms.models import (
+    dbSession,
+    Paper,
+    Question,
+    Record,
+    V_Question,
+    Q_Record,
+    Q_Property,
+)
 
 
 class paperChooser(QDialog):
@@ -98,10 +106,27 @@ class paperChooser(QDialog):
         # 找到刚才建立的记录id
         record_id = self.session.query(Record).filter(Record.finished == False)[0].id
         v_questions = []
+        i = 1
         for question in questions:
-            v_question = V_Question(record_id=record_id, question_id=question.id)
+            v_question = V_Question(
+                record_id=record_id, v_num=i, question_id=question.id
+            )
             v_questions.append(v_question)
+            i += 1
         self.session.add_all(v_questions)
+        self.session.commit()
+        v_questions = (
+            self.session.query(V_Question)
+            .filter(V_Question.record_id == record_id)
+            .all()
+        )
+        q_records = []
+        q_properties = []
+        for v_question in v_questions:
+            q_records.append(Q_Record(v_question_id=v_question.id))
+            q_properties.append(Q_Property(v_question_id=v_question.id))
+        self.session.add_all(q_records)
+        self.session.add_all(q_properties)
         self.session.commit()
         self.session.close()
         return record_id

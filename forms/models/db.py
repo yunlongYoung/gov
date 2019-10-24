@@ -79,23 +79,24 @@ class V_Question(Base):
     __tablename__ = "v_question"
     id = Column(Integer, primary_key=True, autoincrement=True)
     record_id = Column(Integer, ForeignKey("record.id"))
+    v_num = Column(Integer)
     question_id = Column(Integer, ForeignKey("question.id"))
 
 
-class Question_Record(Base):
+class Q_Record(Base):
     """记录问题的已选项、答题时间、note"""
 
-    __tablename__ = "question_record"
+    __tablename__ = "q_record"
     v_question_id = Column(Integer, ForeignKey("v_question.id"), primary_key=True)
-    chosen = Column(Integer)
-    question_time = Column(Integer)
-    note = Column(Text)
+    chosen = Column(Integer, default=-1)
+    question_time = Column(Integer, default=0)
+    note = Column(Text, default="")
 
 
-class Question_Property(Base):
+class Q_Property(Base):
     """每个虚拟问题的属性，交卷后可以增加动态标签"""
 
-    __tablename__ = "question_property"
+    __tablename__ = "q_property"
     v_question_id = Column(Integer, ForeignKey("v_question.id"), primary_key=True)
     wrong = Column(Boolean)
     slow = Column(Boolean)
@@ -103,10 +104,10 @@ class Question_Property(Base):
     overtime = Column(Boolean)
 
 
-class Question_Operation(Base):
+class Q_Operation(Base):
     """记录该问题在面板中的对应操作和时间"""
 
-    __tablename__ = "question_operation"
+    __tablename__ = "q_operation"
     id = Column(Integer, primary_key=True, autoincrement=True)
     v_question_id = Column(Integer, ForeignKey("v_question.id"))
     # 把操作转换为数字
@@ -116,6 +117,7 @@ class Question_Operation(Base):
     # 3: next quesiton
     # 4: pause question
     # 6: continue question
+    # 7: goto question
     # 8: commit query
     # 9: passive start
     operation = Column(Enum(OP), nullable=False)

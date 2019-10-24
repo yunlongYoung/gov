@@ -1,7 +1,19 @@
 import sys
 from PySide2.QtWidgets import QApplication
 from forms import Setup, Query, paperChooser
-from forms.models import dbSession, Record, fill_db_with_questions, Q_Operation, OP
+from forms.models import (
+    dbSession,
+    Paper,
+    Question,
+    Record,
+    V_Question,
+    Q_Record,
+    Q_Property,
+    Q_Operation,
+    OP,
+    fill_db_with_questions,
+)
+
 from sqlalchemy import and_
 
 
@@ -71,7 +83,18 @@ class Main:
 
 
 if __name__ == "__main__":
-    fill_db_with_questions()
+    # fill_db_with_questions()
+    DEBUG = 1
+    if DEBUG:
+        session = dbSession()
+        session.query(Record).delete()
+        session.query(V_Question).delete()
+        session.query(Q_Record).delete()
+        session.query(Q_Property).delete()
+        session.query(Q_Operation).delete()
+        session.commit()
+    else:
+        fill_db_with_questions()
     app = QApplication()
     w = Main()
     sys.exit(app.exec_())

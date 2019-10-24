@@ -14,7 +14,7 @@ from pathlib import Path
 from .enums import OP
 
 
-DEBUG = True
+# DEBUG = True
 Base = declarative_base()
 
 
@@ -125,13 +125,13 @@ class Q_Operation(Base):
 
 
 # engine = create_engine("sqlite:///user_data.db?check_same_thread=False", echo=True)
-engine = create_engine("sqlite:///user_data.db?check_same_thread=False")
+engine = create_engine("sqlite:///test.db?check_same_thread=False")
 
 # scoped_session 单例模式
 dbSession = scoped_session(sessionmaker(bind=engine))
 
-if DEBUG:
-    path = Path("D:\\Desktop\\gov\\user_data.db")
-    if path.exists():
-        path.unlink()
+# if DEBUG:
+#     path = Path("D:\\Desktop\\gov\\user_data.db")
+#     if path.exists():
+#         path.unlink()
 Base.metadata.create_all(engine)

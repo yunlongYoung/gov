@@ -14,7 +14,6 @@ from pathlib import Path
 from .enums import OP
 
 
-# DEBUG = True
 Base = declarative_base()
 
 
@@ -28,9 +27,6 @@ class Paper(Base):
     region = Column(String(3))
     year = Column(String(4))
     grade = Column(String(2))
-    # num = relationship("Num", backref="paper")
-    # true_paper = relationship("True_Paper", backref="paper")
-    # virtual_paper = relationship("True_Paper", backref="virtual_paper")
 
 
 class Question(Base):
@@ -70,7 +66,6 @@ class Record(Base):
     totaltime = Column(Integer, default=0)
     last_v_question_id = Column(Integer, ForeignKey("v_question.id"))
     finished = Column(Boolean, default=False)
-    v_questions = relationship("V_Question", backref="record")
 
 
 class V_Question(Base):
@@ -81,12 +76,13 @@ class V_Question(Base):
     __tablename__ = "v_question"
     id = Column(Integer, primary_key=True, autoincrement=True)
     record_id = Column(Integer, ForeignKey("record.id"))
+    # record = relationship("V_Question", backref="v_questions")
     v_num = Column(Integer)
     question_id = Column(Integer, ForeignKey("question.id"))
-    question = relationship("Question", backref="v_questions")
+    # question = relationship("Question", backref="v_questions")
     # q_record是单向的关系，因为反向查询不使用
     q_record = relationship("Q_Record")
-    q_operations = relationship("Q_Operation", backref="v_question")
+    # q_operations = relationship("Q_Operation", backref="v_question")
 
 
 class Q_Record(Base):
@@ -130,14 +126,15 @@ class Q_Operation(Base):
     datetime = Column(Integer, index=True)
 
 
-# engine = create_engine("sqlite:///user_data.db?check_same_thread=False", echo=True)
+# engine = create_engine("sqlite:///test.db?check_same_thread=False", echo=True)
 engine = create_engine("sqlite:///test.db?check_same_thread=False")
 
 # scoped_session 单例模式
 dbSession = scoped_session(sessionmaker(bind=engine))
 
-# if DEBUG:
-#     path = Path("D:\\Desktop\\gov\\user_data.db")
-#     if path.exists():
-#         path.unlink()
+DEBUG = 0
+if DEBUG:
+    path = Path("D:\\Desktop\\gov\\test.db")
+    if path.exists():
+        path.unlink()
 Base.metadata.create_all(engine)

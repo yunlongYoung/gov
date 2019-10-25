@@ -53,10 +53,16 @@ class Query(QMainWindow):
         totaltime = record.totaltime
         # ! 新建的试卷，此值为None
         current_v_question_id = record.last_v_question_id
-        v_questions = (
-            self.session.query(V_Question).filter_by(record_id=self.record_id).all()
-        )
-        max_num = len(v_questions)
+        if record.max_num:
+            max_num = record.max_num
+        else:
+            # 所有问题的数量 -> 最大题号
+            v_questions = (
+                self.session.query(V_Question).filter_by(record_id=self.record_id).all()
+            )
+            max_num = len(v_questions)
+            record.max_num = max_num
+            self.session.commit()
         if not current_v_question_id:
             # 把此值改为record_id相同的第一个
             # 记录的第一个是不是就是第一题？

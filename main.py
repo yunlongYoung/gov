@@ -84,7 +84,7 @@ class Main:
 
 if __name__ == "__main__":
     # fill_db_with_questions()
-    DEBUG = 0
+    DEBUG = 1
     if DEBUG:
         session = dbSession()
         session.query(Record).delete()

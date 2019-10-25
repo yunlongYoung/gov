@@ -95,7 +95,7 @@ class Query(QMainWindow):
         self.add_operation_time(OP.PREVIOUS_QUESTION)
         self.current_v_question_id -= 1
         v_question = self.session.query(V_Question).get(self.current_v_question_id)
-        if self.current_v_question_id < 1 or v_question.record_id != self.record_id:
+        if not v_question or v_question.record_id != self.record_id:
             self.current_v_question_id += self.max_num
         self.add_operation_time(OP.PASSIVE_START)
         self.update_question()

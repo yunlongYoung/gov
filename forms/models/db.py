@@ -65,10 +65,12 @@ class Record(Base):
     # 当前题号
     # 是否交卷
     is_practice = Column(Boolean)
+    max_num = Column(Integer)
     start_datetime = Column(Integer)
     totaltime = Column(Integer, default=0)
     last_v_question_id = Column(Integer, ForeignKey("v_question.id"))
     finished = Column(Boolean, default=False)
+    v_questions = relationship("V_Question", backref="record")
 
 
 class V_Question(Base):
@@ -81,6 +83,10 @@ class V_Question(Base):
     record_id = Column(Integer, ForeignKey("record.id"))
     v_num = Column(Integer)
     question_id = Column(Integer, ForeignKey("question.id"))
+    question = relationship("Question", backref="v_questions")
+    # q_record是单向的关系，因为反向查询不使用
+    q_record = relationship("Q_Record")
+    q_operations = relationship("Q_Operation", backref="v_question")
 
 
 class Q_Record(Base):

@@ -198,7 +198,7 @@ class Query(QMainWindow):
         # TODO 这个提交需要终止答题
         self.add_operation_time(OP.COMMIT_QUERY)
         self.count_question_time()
-        # finished变为True
+        # 标记记录为完成
         record = (
             self.session.query(Record)
             .filter_by(id=self.record_id, is_practice=False)

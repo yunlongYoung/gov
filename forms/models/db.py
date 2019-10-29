@@ -132,7 +132,7 @@ engine = create_engine("sqlite:///test.db?check_same_thread=False")
 # scoped_session 单例模式
 dbSession = scoped_session(sessionmaker(bind=engine))
 
-DEBUG = 0
+DEBUG = 1
 if DEBUG:
     path = Path("D:\\Desktop\\gov\\test.db")
     if path.exists():

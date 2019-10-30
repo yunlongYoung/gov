@@ -43,6 +43,8 @@ class Question(Base):
     B = Column(Text)
     C = Column(Text)
     D = Column(Text)
+    answer = Column(Integer)
+    answer_key = Column(Text)
     finished = Column(Boolean, default=False)
     # 从试卷的大分类到最小的分类
     category_0 = Column(Text)
